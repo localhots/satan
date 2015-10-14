@@ -6,7 +6,6 @@ import (
 	"log"
 	"os"
 	"os/signal"
-	"syscall"
 
 	"github.com/localhots/uberdaemon"
 	"github.com/localhots/uberdaemon/example/daemons"
@@ -26,7 +25,7 @@ func main() {
 	defer uberd.Stop()
 
 	sig := make(chan os.Signal)
-	signal.Notify(sig, os.Interrupt, syscall.SIGTERM)
+	signal.Notify(sig, os.Interrupt)
 
 	for s := range sig {
 		if s == os.Interrupt {

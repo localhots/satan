@@ -26,10 +26,5 @@ func main() {
 
 	sig := make(chan os.Signal)
 	signal.Notify(sig, os.Interrupt)
-
-	for s := range sig {
-		if s == os.Interrupt {
-			return
-		}
-	}
+	<-sig
 }

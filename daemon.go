@@ -2,11 +2,10 @@ package uberdaemon
 
 import (
 	"fmt"
-	"runtime"
+	"log"
+	"runtime/debug"
 	"strings"
 	"time"
-
-	"log"
 )
 
 // Daemon is the interface that contains a set of methods required to be
@@ -106,13 +105,10 @@ func (b *BaseDaemon) base() *BaseDaemon {
 func (b *BaseDaemon) handlePanic() {
 	if err := recover(); err != nil {
 		b.stats.registerError()
-
-		trace := make([]byte, 1024)
-		runtime.Stack(trace, false)
-
 		if b.panicHandler != nil {
 			b.panicHandler()
 		}
-		log.Printf("Daemon %s recovered from panic. Error: %v\n%s\n", b, err, trace)
+		log.Printf("Daemon %s recovered from panic. Error: %v\n", b, err)
+		debug.PrintStack()
 	}
 }

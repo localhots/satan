@@ -1,7 +1,7 @@
-// Package caller is used to dynamicly call functions with data unmarshalled
-// into the functions' first argument. It's main purpose is to hide common
-// unmarshalling code from each function's implementation thus reducing
-// boilerplate and making the code sexier.
+// Package caller is used to dynamically call functions with data unmarshalled
+// into the functions' first argument. Its main purpose is to hide common
+// unmarshalling code from each function implementation thus reducing
+// boilerplate and making package interaction code sexier.
 package caller
 
 import (

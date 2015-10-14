@@ -21,8 +21,8 @@ func main() {
 
 	s := satan.Summon()
 	s.AddDaemon(&daemons.NumberPrinter{})
-	s.Start()
-	defer s.Stop()
+	s.StartDaemons()
+	defer s.StopDaemons()
 
 	sig := make(chan os.Signal)
 	signal.Notify(sig, os.Interrupt)

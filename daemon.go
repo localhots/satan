@@ -48,18 +48,18 @@ type BaseDaemon struct {
 	self         Daemon
 	name         string
 	stats        *statistics
-	enqueue      func(*task)
+	queue        chan<- *task
 	panicHandler func()
 	shutdown     chan struct{}
 }
 
 // Process creates a task and then adds it to processing queue.
 func (b *BaseDaemon) Process(a Actor) {
-	b.enqueue(&task{
+	b.queue <- &task{
 		daemon:    b.self,
 		actor:     a,
 		createdAt: time.Now(),
-	})
+	}
 }
 
 // HandlePanics sets up a panic handler function for the daemon.
@@ -89,10 +89,10 @@ func (b *BaseDaemon) String() string {
 
 // initialize saves a reference to the child daemon which is then used to print
 // the daemons' name. It also initializes other struct fields.
-func (b *BaseDaemon) initialize(self Daemon, enqueue func(*task)) {
+func (b *BaseDaemon) initialize(self Daemon, queue chan<- *task) {
 	b.self = self
 	b.stats = newStatistics()
-	b.enqueue = enqueue
+	b.queue = queue
 	b.shutdown = make(chan struct{})
 }
 

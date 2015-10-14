@@ -5,12 +5,12 @@ import (
 	"math/rand"
 	"time"
 
-	"github.com/localhots/uberdaemon"
+	"github.com/localhots/satan"
 )
 
 // NumberPrinter is a daemon that prints numbers once in a while.
 type NumberPrinter struct {
-	uberdaemon.BaseDaemon
+	satan.BaseDaemon
 }
 
 // Startup sets up panic handler and starts enqueuing number printing jobs.
@@ -42,7 +42,7 @@ func (n *NumberPrinter) enqueue() {
 	}
 }
 
-func (n *NumberPrinter) makeActor(num int) uberdaemon.Actor {
+func (n *NumberPrinter) makeActor(num int) satan.Actor {
 	return func() {
 		if rand.Intn(20) == 0 {
 			panic("Noooooooooo!")

@@ -7,8 +7,8 @@ import (
 	"os"
 	"os/signal"
 
-	"github.com/localhots/uberdaemon"
-	"github.com/localhots/uberdaemon/example/daemons"
+	"github.com/localhots/satan"
+	"github.com/localhots/satan/example/daemons"
 )
 
 func main() {
@@ -19,10 +19,10 @@ func main() {
 		log.SetOutput(ioutil.Discard)
 	}
 
-	uberd := uberdaemon.New()
-	uberd.AddDaemon(&daemons.NumberPrinter{})
-	uberd.Start()
-	defer uberd.Stop()
+	s := satan.Summon()
+	s.AddDaemon(&daemons.NumberPrinter{})
+	s.Start()
+	defer s.Stop()
 
 	sig := make(chan os.Signal)
 	signal.Notify(sig, os.Interrupt)

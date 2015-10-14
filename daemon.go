@@ -1,4 +1,4 @@
-package uberdaemon
+package satan
 
 import (
 	"fmt"

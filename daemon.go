@@ -85,13 +85,13 @@ func (d *BaseDaemon) ShutdownRequested() <-chan struct{} {
 	return d.shutdown
 }
 
-// ShouldShutdown returns true if daemon should shutdown and false otherwise.
-func (d *BaseDaemon) ShouldShutdown() bool {
+// Continue returns true if daemon should proceed and false if it should stop.
+func (d *BaseDaemon) Continue() bool {
 	select {
 	case <-d.shutdown:
-		return true
-	default:
 		return false
+	default:
+		return true
 	}
 }
 

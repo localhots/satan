@@ -19,20 +19,14 @@ func (n *NumberPrinter) Startup() {
 		log.Println("Oh, crap!")
 	})
 
-	go n.enqueue()
+	n.SystemProcess(n.enqueue)
 }
 
 // Shutdown is empty due to the lack of cleanup.
 func (n *NumberPrinter) Shutdown() {}
 
 func (n *NumberPrinter) enqueue() {
-	for {
-		select {
-		case <-n.ShutdownRequested():
-			return
-		default:
-		}
-
+	for n.Continue() {
 		// Generate a random number between 1000 and 9999 and print it
 		num := 1000 + rand.Intn(9000)
 		n.Process(n.makeActor(num))
@@ -44,6 +38,7 @@ func (n *NumberPrinter) enqueue() {
 
 func (n *NumberPrinter) makeActor(num int) satan.Actor {
 	return func() {
+		// Making it crash sometimes
 		if rand.Intn(20) == 0 {
 			panic("Noooooooooo!")
 		}

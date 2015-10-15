@@ -4,21 +4,28 @@ import (
 	"log"
 	"sync"
 	"time"
+
+	"github.com/localhots/satan/backend"
 )
 
 // Satan is the master daemon.
 type Satan struct {
 	daemons  []Daemon
+	backend  backend.Backend
 	queue    chan *task
 	wg       sync.WaitGroup
 	latency  *statistics
 	shutdown chan struct{}
 }
 
+// Actor is a function that could be executed by daemon workers.
+type Actor func()
+
 type task struct {
 	daemon    Daemon
 	actor     Actor
 	createdAt time.Time
+	system    bool
 }
 
 const (
@@ -36,7 +43,10 @@ func Summon() *Satan {
 
 // AddDaemon adds a new daemon.
 func (s *Satan) AddDaemon(d Daemon) {
-	d.base().initialize(d, s.queue)
+	d.initialize(d, s.queue)
+	if c, ok := d.(Consumer); ok {
+		c.setBackend(s.backend)
+	}
 	go d.Startup()
 
 	s.daemons = append(s.daemons, d)
@@ -55,6 +65,8 @@ func (s *Satan) StartDaemons() {
 
 // StopDaemons stops all running daemons.
 func (s *Satan) StopDaemons() {
+	// First closing backend consumers will begin to close
+	s.backend.Close()
 	for _, d := range s.daemons {
 		close(d.base().shutdown)
 		d.Shutdown()
@@ -62,8 +74,9 @@ func (s *Satan) StopDaemons() {
 		log.Printf("%s daemon performace statistics:\n%s\n",
 			d.base(), d.base().stats.snapshot())
 	}
-	close(s.queue)
+	close(s.shutdown)
 	s.wg.Wait()
+	close(s.queue)
 
 	log.Printf("Task processing latency statistics:\n%s\n", s.latency.snapshot())
 }

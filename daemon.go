@@ -38,10 +38,11 @@ type Daemon interface {
 	// base is a (hack) function that allows the Daemon interface to reference
 	// underlying BaseDaemon structure.
 	base() *BaseDaemon
-}
 
-// Actor is a function that could be executed by daemon workers.
-type Actor func()
+	// initialize is also a hack that is used by the Satan to initialize
+	// base daemon fields.
+	initialize(self Daemon, queue chan<- *task)
+}
 
 // BaseDaemon is the parent structure for all daemons.
 type BaseDaemon struct {
@@ -54,61 +55,77 @@ type BaseDaemon struct {
 }
 
 // Process creates a task and then adds it to processing queue.
-func (b *BaseDaemon) Process(a Actor) {
-	b.queue <- &task{
-		daemon:    b.self,
+func (d *BaseDaemon) Process(a Actor) {
+	d.enqueue(a, false)
+}
+
+// SystemProcess creates a system task that is restarted in case of failure
+// and then adds it to processing queue.
+func (d *BaseDaemon) SystemProcess(a Actor) {
+	d.enqueue(a, true)
+}
+
+func (d *BaseDaemon) enqueue(a Actor, system bool) {
+	d.queue <- &task{
+		daemon:    d.self,
 		actor:     a,
 		createdAt: time.Now(),
+		system:    system,
 	}
 }
 
 // HandlePanics sets up a panic handler function for the daemon.
-func (b *BaseDaemon) HandlePanics(f func()) {
-	b.panicHandler = f
+func (d *BaseDaemon) HandlePanics(f func()) {
+	d.panicHandler = f
 }
 
 // ShutdownRequested returns a channel that is closed the moment daemon shutdown
 // is requested.
-func (b *BaseDaemon) ShutdownRequested() <-chan struct{} {
-	return b.shutdown
+func (d *BaseDaemon) ShutdownRequested() <-chan struct{} {
+	return d.shutdown
 }
 
 // ShouldShutdown returns true if daemon should shutdown and false otherwise.
-func (b *BaseDaemon) ShouldShutdown() bool {
-	return b.shutdown == nil
+func (d *BaseDaemon) ShouldShutdown() bool {
+	select {
+	case <-d.shutdown:
+		return true
+	default:
+		return false
+	}
 }
 
 // String returns the name of the Deamon unerlying struct.
-func (b *BaseDaemon) String() string {
-	if b.name == "" {
-		b.name = strings.Split(fmt.Sprintf("%T", b.self), ".")[1]
+func (d *BaseDaemon) String() string {
+	if d.name == "" {
+		d.name = strings.Split(fmt.Sprintf("%T", d.self), ".")[1]
 	}
 
-	return b.name
+	return d.name
 }
 
 // initialize saves a reference to the child daemon which is then used to print
 // the daemons' name. It also initializes other struct fields.
-func (b *BaseDaemon) initialize(self Daemon, queue chan<- *task) {
-	b.self = self
-	b.stats = newStatistics()
-	b.queue = queue
-	b.shutdown = make(chan struct{})
+func (d *BaseDaemon) initialize(self Daemon, queue chan<- *task) {
+	d.self = self
+	d.stats = newStatistics()
+	d.queue = queue
+	d.shutdown = make(chan struct{})
 }
 
 // base is a (hack) function that allows the Daemon interface to reference
 // underlying BaseDaemon structure.
-func (b *BaseDaemon) base() *BaseDaemon {
-	return b
+func (d *BaseDaemon) base() *BaseDaemon {
+	return d
 }
 
-func (b *BaseDaemon) handlePanic() {
+func (d *BaseDaemon) handlePanic() {
 	if err := recover(); err != nil {
-		b.stats.registerError()
-		if b.panicHandler != nil {
-			b.panicHandler()
+		d.stats.registerError()
+		if d.panicHandler != nil {
+			d.panicHandler()
 		}
-		log.Printf("Daemon %s recovered from panic. Error: %v\n", b, err)
+		log.Printf("Daemon %s recovered from panic. Error: %v\n", d, err)
 		debug.PrintStack()
 	}
 }

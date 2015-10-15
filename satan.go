@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/localhots/satan/backend"
+	"github.com/localhots/satan/backend/kafka"
 )
 
 // Satan is the master daemon.
@@ -65,8 +66,6 @@ func (s *Satan) StartDaemons() {
 
 // StopDaemons stops all running daemons.
 func (s *Satan) StopDaemons() {
-	// First closing backend consumers will begin to close
-	s.backend.Close()
 	for _, d := range s.daemons {
 		close(d.base().shutdown)
 		d.Shutdown()
@@ -77,6 +76,7 @@ func (s *Satan) StopDaemons() {
 	close(s.shutdown)
 	s.wg.Wait()
 	close(s.queue)
+	s.backend.Close()
 
 	log.Printf("Task processing latency statistics:\n%s\n", s.latency.snapshot())
 }
@@ -102,4 +102,21 @@ func (s *Satan) processTask(t *task) {
 
 	dur := time.Now().UnixNano() - start.UnixNano()
 	t.daemon.base().stats.add(time.Duration(dur))
+}
+
+// InitializeKafka initializes Kafka backend.
+func (s *Satan) InitializeKafka(id string, brokers []string) error {
+	k, err := kafka.New(id, brokers)
+	if err != nil {
+		return err
+	}
+	if err = k.InitializeProducer(); err != nil {
+		return err
+	}
+	if err = k.InitializeConsumer(); err != nil {
+		return err
+	}
+
+	s.backend = k
+	return nil
 }

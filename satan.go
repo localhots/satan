@@ -85,12 +85,21 @@ func (s *Satan) runWorker(i int) {
 	log.Printf("Starting worker #%d", i+1)
 	defer log.Printf("Worker #%d has stopped", i+1)
 
-	for t := range s.queue {
-		dur := time.Now().UnixNano() - t.createdAt.UnixNano()
-		s.latency.add(time.Duration(dur))
+	for {
+		select {
+		case t := <-s.queue:
+			dur := time.Now().UnixNano() - t.createdAt.UnixNano()
+			s.latency.add(time.Duration(dur))
 
-		log.Printf("Daemon #%d got some job to do!", i+1)
-		s.processTask(t)
+			// log.Printf("Daemon #%d got some job to do!", i+1)
+			s.processTask(t)
+		default:
+			select {
+			case <-s.shutdown:
+				return
+			default:
+			}
+		}
 	}
 }
 

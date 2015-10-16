@@ -12,8 +12,10 @@ import (
 
 // Caller wraps a function and makes it ready to be dynamically called.
 type Caller struct {
-	fun    reflect.Value
-	argtyp reflect.Type
+	// Unmarshaller is a BYOB unmarshaller function. By default it uses JSON.
+	Unmarshaller func(data []byte, v interface{}) error
+	fun          reflect.Value
+	argtyp       reflect.Type
 }
 
 var (
@@ -46,15 +48,16 @@ func New(fun interface{}) (c *Caller, err error) {
 	}
 
 	c = &Caller{
-		fun:    fval,
-		argtyp: ftyp.In(0),
+		Unmarshaller: json.Unmarshal,
+		fun:          fval,
+		argtyp:       ftyp.In(0),
 	}
 
 	return c, nil
 }
 
 // Call creates an instance of the Caller function's argument type, unmarshalls
-// the JSON payload into it and dynamically calls the Caller function with this
+// the payload into it and dynamically calls the Caller function with this
 // instance.
 func (c *Caller) Call(data []byte) error {
 	val, err := c.unmarshal(data)
@@ -68,7 +71,7 @@ func (c *Caller) Call(data []byte) error {
 
 func (c *Caller) unmarshal(data []byte) (val reflect.Value, err error) {
 	val = c.newValue()
-	err = json.Unmarshal(data, val.Interface())
+	err = c.Unmarshaller(data, val.Interface())
 	return
 }
 

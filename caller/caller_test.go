@@ -122,7 +122,11 @@ func captureStdoutAround(f func()) []byte {
 	f()
 
 	w.Close()
-	out, _ := ioutil.ReadAll(r)
+	out, err := ioutil.ReadAll(r)
+	if err != nil {
+		os.Stdout = origStdout
+		panic(err)
+	}
 	r.Close()
 	os.Stdout = origStdout
 

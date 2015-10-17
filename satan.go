@@ -1,9 +1,7 @@
 package satan
 
 import (
-	"fmt"
 	"log"
-	"runtime/debug"
 	"sync"
 	"time"
 )
@@ -38,14 +36,6 @@ type Streamer interface {
 type Publisher interface {
 	Publish(msg []byte)
 	Close()
-}
-
-type task struct {
-	daemon    Daemon
-	actor     Actor
-	createdAt time.Time
-	system    bool
-	name      string
 }
 
 const (
@@ -112,7 +102,9 @@ func (s *Satan) runWorker(i int) {
 		case t := <-s.queue:
 			dur := time.Now().UnixNano() - t.createdAt.UnixNano()
 			s.latency.add(time.Duration(dur))
-			s.processTask(t)
+			if restart := t.process(); restart {
+				s.queue <- t
+			}
 		default:
 			select {
 			case <-s.shutdown:
@@ -121,33 +113,4 @@ func (s *Satan) runWorker(i int) {
 			}
 		}
 	}
-}
-
-func (s *Satan) processTask(t *task) {
-	defer func(start time.Time) {
-		dur := time.Now().UnixNano() - start.UnixNano()
-		t.daemon.base().stats.add(time.Duration(dur))
-
-		if err := recover(); err != nil {
-			if t.system {
-				log.Printf("System process %s recovered from a panic\nError: %v\n", t, err)
-				debug.PrintStack()
-
-				// Restarting system task
-				s.queue <- t
-			} else {
-				t.daemon.base().handlePanic(err)
-			}
-		}
-	}(time.Now())
-
-	t.actor() // <--- THE ACTION HAPPENS HERE
-}
-
-func (t *task) String() string {
-	if t.name == "" {
-		return fmt.Sprintf("[unnamed %s process]", t.daemon.base())
-	}
-
-	return fmt.Sprintf("%s[%s]", t.daemon.base(), t.name)
 }

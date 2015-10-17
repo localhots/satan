@@ -1,11 +1,14 @@
 package satan
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"runtime/debug"
 	"strings"
 	"time"
+
+	"github.com/localhots/satan/caller"
 )
 
 // Daemon is the interface that contains a set of methods required to be
@@ -38,21 +41,24 @@ type Daemon interface {
 	// base is a (hack) function that allows the Daemon interface to reference
 	// underlying BaseDaemon structure.
 	base() *BaseDaemon
-
-	// initialize is also a hack that is used by the Satan to initialize
-	// base daemon fields.
-	initialize(self Daemon, queue chan<- *task)
 }
 
 // BaseDaemon is the parent structure for all daemons.
 type BaseDaemon struct {
-	self         Daemon
-	name         string
-	stats        *statistics
-	queue        chan<- *task
-	panicHandler func()
-	shutdown     chan struct{}
+	subscribeFunc SubscribeFunc
+	publisher     Publisher
+	self          Daemon
+	name          string
+	stats         *statistics
+	queue         chan<- *task
+	panicHandler  func()
+	shutdown      chan struct{}
 }
+
+var (
+	errMissingSubscriptionFun = errors.New("subscription function is not set up")
+	errMissingPublisher       = errors.New("publisher is not set up")
+)
 
 // Process creates a task and then adds it to processing queue.
 func (d *BaseDaemon) Process(a Actor) {
@@ -72,6 +78,41 @@ func (d *BaseDaemon) enqueue(a Actor, system bool) {
 		createdAt: time.Now(),
 		system:    system,
 	}
+}
+
+// Subscribe subscriasdsdfsdgdfgdfsg sdgsdfg sdfgs dfgdfgdfg.
+func (d *BaseDaemon) Subscribe(topic string, fun interface{}) {
+	d.SystemProcess(func() {
+		if d.subscribeFunc == nil {
+			panic(errMissingSubscriptionFun)
+		}
+
+		stream := d.subscribeFunc(d.String(), topic)
+		defer stream.Close()
+
+		cf, err := caller.New(fun)
+		if err != nil {
+			panic(err)
+		}
+
+		for {
+			select {
+			case msg := <-stream.Messages():
+				d.Process(func() { cf.Call(msg) })
+			case <-d.shutdown:
+				return
+			}
+		}
+	})
+}
+
+// Publish sends a message to the publisher.
+func (d *BaseDaemon) Publish(msg []byte) {
+	if d.publisher == nil {
+		panic(errMissingPublisher)
+	}
+
+	d.publisher.Publish(msg)
 }
 
 // HandlePanics sets up a panic handler function for the daemon.
@@ -102,15 +143,6 @@ func (d *BaseDaemon) String() string {
 	}
 
 	return d.name
-}
-
-// initialize saves a reference to the child daemon which is then used to print
-// the daemons' name. It also initializes other struct fields.
-func (d *BaseDaemon) initialize(self Daemon, queue chan<- *task) {
-	d.self = self
-	d.stats = newStatistics()
-	d.queue = queue
-	d.shutdown = make(chan struct{})
 }
 
 // base is a (hack) function that allows the Daemon interface to reference

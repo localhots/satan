@@ -30,7 +30,7 @@ func main() {
 	defer kafka.Shutdown()
 
 	s := satan.Summon()
-	s.SubscribeFunc = kafka.MakeStream
+	s.SubscribeFunc = kafka.Subscribe
 	s.AddDaemon(&daemons.NumberPrinter{})
 	s.AddDaemon(&daemons.PriceConsumer{})
 

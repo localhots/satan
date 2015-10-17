@@ -59,8 +59,8 @@ func Shutdown() {
 	}
 }
 
-// MakeStream creates a satan.Streamer implementation for Kafka messaging queue.
-func MakeStream(consumer, topic string) satan.Streamer {
+// Subscribe creates a satan.Streamer implementation for Kafka messaging queue.
+func Subscribe(consumer, topic string) satan.Streamer {
 	c, ok := consumers[consumer]
 	if !ok {
 		panic(fmt.Errorf("Consumer %q has no config", consumer))

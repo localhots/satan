@@ -125,7 +125,7 @@ func (s *Satan) processTask(t *task) {
 	defer t.daemon.base().handlePanic()
 	start := time.Now()
 
-	t.actor()
+	t.actor() // <--- THE ACTION HAPPENS HERE
 
 	dur := time.Now().UnixNano() - start.UnixNano()
 	t.daemon.base().stats.add(time.Duration(dur))

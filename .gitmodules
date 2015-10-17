@@ -1,0 +1,15 @@
+[submodule "vendor/github.com/Shopify/sarama"]
+    path = vendor/github.com/Shopify/sarama
+    url = git@github.com:Shopify/sarama.git
+[submodule "vendor/github.com/rcrowley/go-metrics"]
+    path = vendor/github.com/rcrowley/go-metrics
+    url = git@github.com:rcrowley/go-metrics.git
+[submodule "vendor/github.com/juju/ratelimit"]
+    path = vendor/github.com/juju/ratelimit
+    url = git@github.com:juju/ratelimit.git
+[submodule "vendor/github.com/klauspost/crc32"]
+	path = vendor/github.com/klauspost/crc32
+	url = git@github.com:klauspost/crc32.git
+[submodule "vendor/github.com/golang/snappy"]
+	path = vendor/github.com/golang/snappy
+	url = git@github.com:golang/snappy.git

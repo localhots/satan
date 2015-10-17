@@ -8,8 +8,8 @@
     path = vendor/github.com/juju/ratelimit
     url = git@github.com:juju/ratelimit.git
 [submodule "vendor/github.com/klauspost/crc32"]
-	path = vendor/github.com/klauspost/crc32
-	url = git@github.com:klauspost/crc32.git
+    path = vendor/github.com/klauspost/crc32
+    url = git@github.com:klauspost/crc32.git
 [submodule "vendor/github.com/golang/snappy"]
-	path = vendor/github.com/golang/snappy
-	url = git@github.com:golang/snappy.git
+    path = vendor/github.com/golang/snappy
+    url = git@github.com:golang/snappy.git

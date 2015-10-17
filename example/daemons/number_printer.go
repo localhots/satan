@@ -16,7 +16,7 @@ type NumberPrinter struct {
 // Startup sets up panic handler and starts enqueuing number printing jobs.
 func (n *NumberPrinter) Startup() {
 	n.HandlePanics(func() {
-		log.Println("Oh, crap!")
+		log.Println("Oh, crap! There was a panic, take a look:")
 	})
 
 	n.SystemProcess(n.enqueue)

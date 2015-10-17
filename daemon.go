@@ -62,27 +62,29 @@ var (
 
 // Process creates a task and then adds it to processing queue.
 func (d *BaseDaemon) Process(a Actor) {
-	d.enqueue(a, false)
-}
-
-// SystemProcess creates a system task that is restarted in case of failure
-// and then adds it to processing queue.
-func (d *BaseDaemon) SystemProcess(a Actor) {
-	d.enqueue(a, true)
-}
-
-func (d *BaseDaemon) enqueue(a Actor, system bool) {
 	d.queue <- &task{
 		daemon:    d.self,
 		actor:     a,
 		createdAt: time.Now(),
-		system:    system,
+	}
+}
+
+// SystemProcess creates a system task that is restarted in case of failure
+// and then adds it to processing queue.
+func (d *BaseDaemon) SystemProcess(name string, a Actor) {
+	d.queue <- &task{
+		daemon:    d.self,
+		actor:     a,
+		createdAt: time.Now(),
+		system:    true,
+		name:      name,
 	}
 }
 
 // Subscribe subscriasdsdfsdgdfgdfsg sdgsdfg sdfgs dfgdfgdfg.
 func (d *BaseDaemon) Subscribe(topic string, fun interface{}) {
-	d.SystemProcess(func() {
+	name := fmt.Sprintf("%s subscription for topic %q", d.String(), topic)
+	d.SystemProcess(name, func() {
 		if d.subscribeFunc == nil {
 			panic(errMissingSubscriptionFun)
 		}
@@ -151,13 +153,11 @@ func (d *BaseDaemon) base() *BaseDaemon {
 	return d
 }
 
-func (d *BaseDaemon) handlePanic() {
-	if err := recover(); err != nil {
-		d.stats.registerError()
-		if d.panicHandler != nil {
-			d.panicHandler()
-		}
-		log.Printf("Daemon %s recovered from panic. Error: %v\n", d, err)
-		debug.PrintStack()
+func (d *BaseDaemon) handlePanic(err interface{}) {
+	d.stats.registerError()
+	if d.panicHandler != nil {
+		d.panicHandler()
 	}
+	log.Printf("Daemon %s recovered from a panic\nError: %v\n", d, err)
+	debug.PrintStack()
 }

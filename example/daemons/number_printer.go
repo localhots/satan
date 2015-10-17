@@ -19,14 +19,17 @@ func (n *NumberPrinter) Startup() {
 		log.Println("Oh, crap! There was a panic, take a look:")
 	})
 
-	n.SystemProcess(n.enqueue)
+	n.SystemProcess("Random Number Generator", n.generateNumbers)
 }
 
 // Shutdown is empty due to the lack of cleanup.
 func (n *NumberPrinter) Shutdown() {}
 
-func (n *NumberPrinter) enqueue() {
+func (n *NumberPrinter) generateNumbers() {
 	for n.Continue() {
+		if rand.Intn(7) == 0 {
+			panic("Number generator don't work on Sundays!")
+		}
 		// Generate a random number between 1000 and 9999 and print it
 		num := 1000 + rand.Intn(9000)
 		n.Process(n.makeActor(num))
@@ -39,10 +42,10 @@ func (n *NumberPrinter) enqueue() {
 func (n *NumberPrinter) makeActor(num int) satan.Actor {
 	return func() {
 		// Making it crash sometimes
-		if rand.Intn(20) == 0 {
-			panic("Noooooooooo!")
+		if rand.Intn(10) == 0 {
+			panic("Nooooo! Random number generator returned a zero!")
 		}
 
-		log.Println("NumberPrinter says", num)
+		log.Println("Number printer says:", num)
 	}
 }

@@ -92,9 +92,10 @@ func (s *Satan) StopDaemons() {
 		close(d.base().shutdown)
 		d.Shutdown()
 
-		log.Printf("%s daemon performace statistics:\n%s\n",
-			d.base(), d.base().stats.snapshot())
+		stats := d.base().stats.snapshot()
+		log.Printf("%s daemon performace statistics:\n%s\n", d.base(), stats)
 	}
+
 	close(s.shutdown)
 	s.wg.Wait()
 	close(s.queue)
@@ -123,7 +124,10 @@ func (s *Satan) runWorker(i int) {
 }
 
 func (s *Satan) processTask(t *task) {
-	defer func() {
+	defer func(start time.Time) {
+		dur := time.Now().UnixNano() - start.UnixNano()
+		t.daemon.base().stats.add(time.Duration(dur))
+
 		if err := recover(); err != nil {
 			if t.system {
 				log.Printf("System process %s recovered from a panic\nError: %v\n", t, err)
@@ -135,14 +139,9 @@ func (s *Satan) processTask(t *task) {
 				t.daemon.base().handlePanic(err)
 			}
 		}
-	}()
-
-	start := time.Now()
+	}(time.Now())
 
 	t.actor() // <--- THE ACTION HAPPENS HERE
-
-	dur := time.Now().UnixNano() - start.UnixNano()
-	t.daemon.base().stats.add(time.Duration(dur))
 }
 
 func (t *task) String() string {

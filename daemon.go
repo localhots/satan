@@ -122,10 +122,10 @@ func (d *BaseDaemon) Publish(msg []byte) {
 	d.publisher.Publish(msg)
 }
 
-// LimitRate limits the daemons processing rate.
+// LimitRate limits the daemons' processing rate.
 func (d *BaseDaemon) LimitRate(times int, per time.Duration) {
 	rate := float64(time.Second) / float64(per) * float64(times)
-	if rate < 0 {
+	if rate <= 0 {
 		log.Println("Daemon %s processing rate was limited to %d. Using 1 instead", d.base(), rate)
 		rate = 1.0
 	}

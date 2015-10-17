@@ -8,6 +8,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/juju/ratelimit"
 	"github.com/localhots/satan/caller"
 )
 
@@ -53,6 +54,7 @@ type BaseDaemon struct {
 	queue         chan<- *task
 	panicHandler  func()
 	shutdown      chan struct{}
+	limit         *ratelimit.Bucket
 }
 
 var (
@@ -62,6 +64,9 @@ var (
 
 // Process creates a task and then adds it to processing queue.
 func (d *BaseDaemon) Process(a Actor) {
+	if d.limit != nil {
+		d.limit.Wait(1)
+	}
 	d.queue <- &task{
 		daemon:    d.self,
 		actor:     a,
@@ -115,6 +120,17 @@ func (d *BaseDaemon) Publish(msg []byte) {
 	}
 
 	d.publisher.Publish(msg)
+}
+
+// LimitRate limits the daemons processing rate.
+func (d *BaseDaemon) LimitRate(times int, per time.Duration) {
+	rate := float64(time.Second) / float64(per) * float64(times)
+	if rate < 0 {
+		log.Println("Daemon %s processing rate was limited to %d. Using 1 instead", d.base(), rate)
+		rate = 1.0
+	}
+	log.Printf("Daemon %s processing rate is limited to %.2f ops/s", d.base(), rate)
+	d.limit = ratelimit.NewBucketWithRate(rate, 1)
 }
 
 // HandlePanics sets up a panic handler function for the daemon.

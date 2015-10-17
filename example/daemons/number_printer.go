@@ -20,6 +20,7 @@ func (n *NumberPrinter) Startup() {
 	})
 
 	n.SystemProcess("Random Number Generator", n.generateNumbers)
+	n.LimitRate(1, 2*time.Second)
 }
 
 // Shutdown is empty due to the lack of cleanup.
@@ -33,9 +34,6 @@ func (n *NumberPrinter) generateNumbers() {
 		// Generate a random number between 1000 and 9999 and print it
 		num := 1000 + rand.Intn(9000)
 		n.Process(n.makeActor(num))
-
-		// Sleep for a second or less
-		time.Sleep(time.Duration(rand.Intn(1000)) * time.Millisecond)
 	}
 }
 

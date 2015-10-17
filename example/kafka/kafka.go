@@ -1,4 +1,4 @@
-package main
+package kafka
 
 import (
 	"encoding/json"
@@ -11,14 +11,14 @@ import (
 	"github.com/localhots/satan"
 )
 
-// KafkaConsumerState contains data that is required to create a Kafka consumer.
-type KafkaConsumerState struct {
+// ConsumerState contains data that is required to create a Kafka consumer.
+type ConsumerState struct {
 	Partition int32 `json:"partition"`
 	Offset    int64 `json:"offset"`
 }
 
-// KafkaStream is an implementation of satan.Stremer for Kafka messaging queue.
-type KafkaStream struct {
+// Stream is an implementation of satan.Stremer for Kafka messaging queue.
+type Stream struct {
 	messages chan []byte
 	shutdown chan struct{}
 }
@@ -30,10 +30,11 @@ const (
 var (
 	kafkaClient   sarama.Client
 	kafkaConsumer sarama.Consumer
-	consumers     = map[string]map[string]KafkaConsumerState{}
+	consumers     = map[string]map[string]ConsumerState{}
 )
 
-func initKafka(brokers []string) {
+// Initialize sets up the kafka package.
+func Initialize(brokers []string) {
 	conf := sarama.NewConfig()
 	conf.ClientID = "Satan Example"
 
@@ -44,9 +45,12 @@ func initKafka(brokers []string) {
 	if kafkaConsumer, err = sarama.NewConsumerFromClient(kafkaClient); err != nil {
 		panic(err)
 	}
+
+	loadConsumerConfig()
 }
 
-func shutdownKafka() {
+// Shutdown shuts down the kafka package.
+func Shutdown() {
 	if err := kafkaConsumer.Close(); err != nil {
 		panic(err)
 	}
@@ -55,7 +59,8 @@ func shutdownKafka() {
 	}
 }
 
-func makeStream(consumer, topic string) satan.Streamer {
+// MakeStream creates a satan.Streamer implementation for Kafka messaging queue.
+func MakeStream(consumer, topic string) satan.Streamer {
 	c, ok := consumers[consumer]
 	if !ok {
 		panic(fmt.Errorf("Consumer %q has no config", consumer))
@@ -70,7 +75,7 @@ func makeStream(consumer, topic string) satan.Streamer {
 		panic(err)
 	}
 
-	stream := &KafkaStream{
+	stream := &Stream{
 		messages: make(chan []byte),
 		shutdown: make(chan struct{}),
 	}
@@ -89,6 +94,16 @@ func makeStream(consumer, topic string) satan.Streamer {
 	}()
 
 	return stream
+}
+
+// Messages returns a channel that stream messages.
+func (s *Stream) Messages() <-chan []byte {
+	return s.messages
+}
+
+// Close stops Kafka partition consumer.
+func (s *Stream) Close() {
+	close(s.shutdown)
 }
 
 func loadConsumerConfig() {
@@ -110,14 +125,4 @@ Config file contents should look like this:
 			panic(err)
 		}
 	}
-}
-
-// Messages returns a channel that stream messages.
-func (s *KafkaStream) Messages() <-chan []byte {
-	return s.messages
-}
-
-// Close stops Kafka partition consumer.
-func (s *KafkaStream) Close() {
-	close(s.shutdown)
 }

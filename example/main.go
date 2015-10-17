@@ -10,6 +10,7 @@ import (
 
 	"github.com/localhots/satan"
 	"github.com/localhots/satan/example/daemons"
+	"github.com/localhots/satan/example/kafka"
 )
 
 func main() {
@@ -17,7 +18,7 @@ func main() {
 	var brokers string
 
 	flag.BoolVar(&debug, "v", false, "Verbose mode")
-	flag.StringVar(&brokers, "brokers", "127.0.0.1:9092", "Kafka broker addresses (separated by space)")
+	flag.StringVar(&brokers, "brokers", "127.0.0.1:9092", "Kafka broker addresses separated by space")
 	flag.Parse()
 
 	log.SetOutput(ioutil.Discard)
@@ -25,12 +26,11 @@ func main() {
 		log.SetOutput(os.Stderr)
 	}
 
-	loadConsumerConfig()
-	initKafka(strings.Split(brokers, " "))
-	defer shutdownKafka()
+	kafka.Initialize(strings.Split(brokers, " "))
+	defer kafka.Shutdown()
 
 	s := satan.Summon()
-	s.SubscribeFunc = makeStream
+	s.SubscribeFunc = kafka.MakeStream
 	s.AddDaemon(&daemons.NumberPrinter{})
 	s.AddDaemon(&daemons.PriceConsumer{})
 

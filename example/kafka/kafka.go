@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"sync"
 
 	"github.com/Shopify/sarama"
 	"github.com/localhots/satan"
@@ -21,6 +22,7 @@ type ConsumerState struct {
 type Stream struct {
 	messages chan []byte
 	shutdown chan struct{}
+	wg       sync.WaitGroup
 }
 
 const (
@@ -80,15 +82,21 @@ func Subscribe(consumer, topic string) satan.Streamer {
 		shutdown: make(chan struct{}),
 	}
 	go func() {
+		stream.wg.Add(1)
+		defer stream.wg.Done()
+		defer pc.Close()
 		for {
 			select {
 			case msg := <-pc.Messages():
-				stream.messages <- msg.Value
-				t.Offset = msg.Offset
+				select {
+				case stream.messages <- msg.Value:
+					t.Offset = msg.Offset
+				case <-stream.shutdown:
+					return
+				}
 			case err := <-pc.Errors():
 				log.Println("Kafka error:", err.Error())
 			case <-stream.shutdown:
-				pc.Close()
 				return
 			}
 		}
@@ -105,6 +113,7 @@ func (s *Stream) Messages() <-chan []byte {
 // Close stops Kafka partition consumer.
 func (s *Stream) Close() {
 	close(s.shutdown)
+	s.wg.Wait()
 }
 
 func loadConsumerConfig() {

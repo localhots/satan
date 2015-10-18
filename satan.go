@@ -141,6 +141,8 @@ func (s *Satan) processSystemTask(t *task) {
 		if err := recover(); err != nil {
 			log.Printf("System task %s recovered from a panic\nError: %v\n", t, err)
 			debug.PrintStack()
+
+			t.createdAt = time.Now()
 			s.queue <- t // Restarting task
 		} else {
 			log.Printf("System task %s has stopped\n", t)

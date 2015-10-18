@@ -37,6 +37,9 @@ var (
 
 // Initialize sets up the kafka package.
 func Initialize(brokers []string) {
+	log.Println("Initializing Kafka")
+	defer log.Println("Kafka is initialized")
+
 	conf := sarama.NewConfig()
 	conf.ClientID = "Satan Example"
 
@@ -53,6 +56,9 @@ func Initialize(brokers []string) {
 
 // Shutdown shuts down the kafka package.
 func Shutdown() {
+	log.Println("Shutting down Kafka")
+	defer log.Println("Kafka was shut down")
+
 	if err := kafkaConsumer.Close(); err != nil {
 		panic(err)
 	}

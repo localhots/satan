@@ -117,12 +117,8 @@ func (s *Satan) runWorker(i int) {
 		select {
 		case t := <-s.queue:
 			s.processTask(t)
-		default:
-			select {
-			case <-s.shutdownWorkers:
-				return
-			default:
-			}
+		case <-s.shutdownWorkers:
+			return
 		}
 	}
 }

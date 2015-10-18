@@ -52,10 +52,13 @@ type BaseDaemon struct {
 	name          string
 	stats         *statistics
 	queue         chan<- *task
-	panicHandler  func()
+	panicHandler  PanicHandler
 	shutdown      chan struct{}
 	limit         *ratelimit.Bucket
 }
+
+// PanicHandler is a function that handles panics. Duh!
+type PanicHandler func(interface{})
 
 var (
 	errMissingSubscriptionFun = errors.New("subscription function is not set up")
@@ -88,7 +91,7 @@ func (d *BaseDaemon) SystemProcess(name string, a Actor) {
 
 // Subscribe subscriasdsdfsdgdfgdfsg sdgsdfg sdfgs dfgdfgdfg.
 func (d *BaseDaemon) Subscribe(topic string, fun interface{}) {
-	name := fmt.Sprintf("%s subscription for topic %q", d.String(), topic)
+	name := fmt.Sprintf("Subscription for topic %q", topic)
 	d.SystemProcess(name, func() {
 		if d.subscribeFunc == nil {
 			panic(errMissingSubscriptionFun)
@@ -134,7 +137,7 @@ func (d *BaseDaemon) LimitRate(times int, per time.Duration) {
 }
 
 // HandlePanics sets up a panic handler function for the daemon.
-func (d *BaseDaemon) HandlePanics(f func()) {
+func (d *BaseDaemon) HandlePanics(f PanicHandler) {
 	d.panicHandler = f
 }
 
@@ -169,10 +172,15 @@ func (d *BaseDaemon) base() *BaseDaemon {
 	return d
 }
 
-func (d *BaseDaemon) handlePanic(err interface{}) {
+func (d *BaseDaemon) handlePanic() {
+	err := recover()
+	if err == nil {
+		return
+	}
+
 	d.stats.registerError()
 	if d.panicHandler != nil {
-		d.panicHandler()
+		d.panicHandler(err)
 	}
 	log.Printf("Daemon %s recovered from a panic\nError: %v\n", d, err)
 	debug.PrintStack()

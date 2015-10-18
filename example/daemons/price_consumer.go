@@ -19,10 +19,10 @@ type PriceUpdate struct {
 
 // Startup creates a new subscription for ProductPriceUpdates topic.
 func (p *PriceConsumer) Startup() {
+	p.LimitRate(1, 500*time.Millisecond)
 	b.Subscribe("ProductPriceUpdates", func(u PriceUpdate) {
 		log.Printf("Price for %q is now $%.2f", u.Product, u.Amount)
 	})
-	p.LimitRate(1, 500*time.Millisecond)
 }
 
 // Shutdown is empty because PriceConsumer requires no cleanup upon exiting.

@@ -15,12 +15,12 @@ type NumberPrinter struct {
 
 // Startup sets up panic handler and starts enqueuing number printing jobs.
 func (n *NumberPrinter) Startup() {
-	n.HandlePanics(func() {
-		log.Println("Oh, crap! There was a panic, take a look:")
+	n.HandlePanics(func(err interface{}) {
+		log.Printf("Oh, crap! There was a panic, take a look: %v", err)
 	})
 
-	n.SystemProcess("Random Number Generator", n.generateNumbers)
 	n.LimitRate(1, 2*time.Second)
+	n.SystemProcess("Random Number Generator", n.generateNumbers)
 }
 
 // Shutdown is empty due to the lack of cleanup.

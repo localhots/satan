@@ -88,6 +88,7 @@ func Subscribe(consumer, topic string) satan.Streamer {
 			case err := <-pc.Errors():
 				log.Println("Kafka error:", err.Error())
 			case <-stream.shutdown:
+				pc.Close()
 				return
 			}
 		}

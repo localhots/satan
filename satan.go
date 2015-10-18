@@ -1,7 +1,9 @@
 package satan
 
 import (
+	"fmt"
 	"log"
+	"runtime/debug"
 	"sync"
 	"time"
 )
@@ -11,11 +13,14 @@ type Satan struct {
 	SubscribeFunc SubscribeFunc
 	Publisher     Publisher
 
-	daemons  []Daemon
-	queue    chan *task
-	shutdown chan struct{}
-	wg       sync.WaitGroup
-	latency  *statistics
+	daemons []Daemon
+	queue   chan *task
+	latency *statistics
+
+	wgWorkers       sync.WaitGroup
+	wgSystem        sync.WaitGroup
+	shutdownWorkers chan struct{}
+	shutdownSystem  chan struct{}
 }
 
 // Actor is a function that could be executed by daemon workers.
@@ -38,6 +43,14 @@ type Publisher interface {
 	Close()
 }
 
+type task struct {
+	daemon    Daemon
+	actor     Actor
+	createdAt time.Time
+	system    bool
+	name      string
+}
+
 const (
 	defaultNumWorkers = 10
 )
@@ -45,9 +58,10 @@ const (
 // Summon creates a new instance of Satan.
 func Summon() *Satan {
 	return &Satan{
-		queue:    make(chan *task),
-		latency:  newStatistics(),
-		shutdown: make(chan struct{}),
+		queue:           make(chan *task),
+		latency:         newStatistics(),
+		shutdownWorkers: make(chan struct{}),
+		shutdownSystem:  make(chan struct{}),
 	}
 }
 
@@ -58,7 +72,7 @@ func (s *Satan) AddDaemon(d Daemon) {
 	base.subscribeFunc = s.SubscribeFunc
 	base.publisher = s.Publisher
 	base.queue = s.queue
-	base.shutdown = make(chan struct{})
+	base.shutdown = s.shutdownSystem
 	base.stats = newStatistics()
 
 	go d.Startup()
@@ -67,50 +81,94 @@ func (s *Satan) AddDaemon(d Daemon) {
 
 // StartDaemons starts all registered daemons.
 func (s *Satan) StartDaemons() {
-	s.wg.Add(defaultNumWorkers)
 	for i := 0; i < defaultNumWorkers; i++ {
 		go func(i int) {
 			s.runWorker(i)
-			s.wg.Done()
 		}(i)
 	}
 }
 
 // StopDaemons stops all running daemons.
 func (s *Satan) StopDaemons() {
+	close(s.shutdownSystem)
 	for _, d := range s.daemons {
-		close(d.base().shutdown)
 		d.Shutdown()
+	}
 
+	s.wgSystem.Wait()
+	close(s.shutdownWorkers)
+	s.wgWorkers.Wait()
+	close(s.queue)
+
+	for _, d := range s.daemons {
 		stats := d.base().stats.snapshot()
 		log.Printf("%s daemon performace statistics:\n%s\n", d.base(), stats)
 	}
-
-	close(s.shutdown)
-	s.wg.Wait()
-	close(s.queue)
-
 	log.Printf("Task processing latency statistics:\n%s\n", s.latency.snapshot())
 }
 
 func (s *Satan) runWorker(i int) {
+	s.wgWorkers.Add(1)
+	defer s.wgWorkers.Done()
 	log.Printf("Starting worker #%d", i+1)
 	defer log.Printf("Worker #%d has stopped", i+1)
 
 	for {
 		select {
 		case t := <-s.queue:
-			dur := time.Now().UnixNano() - t.createdAt.UnixNano()
-			s.latency.add(time.Duration(dur))
-			if restart := t.process(); restart {
-				s.queue <- t
-			}
+			s.processTask(t)
 		default:
 			select {
-			case <-s.shutdown:
+			case <-s.shutdownWorkers:
 				return
 			default:
 			}
 		}
 	}
+}
+
+func (s *Satan) processTask(t *task) {
+	dur := time.Now().UnixNano() - t.createdAt.UnixNano()
+	s.latency.add(time.Duration(dur))
+
+	if t.system {
+		s.processSystemTask(t)
+	} else {
+		s.processGeneralTask(t)
+	}
+}
+
+func (s *Satan) processSystemTask(t *task) {
+	s.wgSystem.Add(1)
+	defer s.wgSystem.Done()
+	defer func() {
+		if err := recover(); err != nil {
+			log.Printf("System task %s recovered from a panic\nError: %v\n", t, err)
+			debug.PrintStack()
+			s.queue <- t // Restarting task
+		} else {
+			log.Printf("System task %s has stopped\n", t)
+		}
+	}()
+
+	log.Printf("Starting system task %s\n", t)
+	t.actor() // <--- THE ACTION HAPPENS HERE
+}
+
+func (s *Satan) processGeneralTask(t *task) {
+	defer t.daemon.base().handlePanic()
+	defer func(start time.Time) {
+		dur := time.Now().UnixNano() - start.UnixNano()
+		t.daemon.base().stats.add(time.Duration(dur))
+	}(time.Now())
+
+	t.actor() // <--- THE ACTION HAPPENS HERE
+}
+
+func (t *task) String() string {
+	if t.name == "" {
+		return fmt.Sprintf("[unnamed %s process]", t.daemon.base())
+	}
+
+	return fmt.Sprintf("%s[%s]", t.daemon.base(), t.name)
 }

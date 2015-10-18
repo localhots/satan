@@ -23,15 +23,15 @@ type Daemon interface {
 	//         log.Error("Oh, crap!")
 	//     })
 	//
-	//     // 2. If the daemon is also a consumer we need to subscribe for
+	//     // 2. If the daemon is doing some IO it is a good idea to limit the
+	//     // rate of its execution
+	//     b.LimitRate(10, 1 * time.Second)
+	//
+	//     // 3. If the daemon is also a consumer we need to subscribe for
 	//     // topics that would be consumed by the daemon
 	//     b.Subscribe("ProductPriceUpdates", func(p PriceUpdate) {
 	// 	       log.Printf("Price for %q is now $%.2f", p.Product, p.Amount)
 	//     })
-	//
-	//     // 3. If the daemon is doing some IO it is a good idea to limit the
-	//     // rate of its execution
-	//     b.LimitRate(10, 1 * time.Second)
 	// }
 	Startup()
 

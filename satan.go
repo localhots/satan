@@ -188,8 +188,8 @@ func (s *Satan) processGeneralTask(t *task) {
 
 func (t *task) String() string {
 	if t.name == "" {
-		return fmt.Sprintf("[unnamed %s process]", t.daemon.base())
+		return fmt.Sprintf("[unnamed %s process]", t.daemon)
 	}
 
-	return fmt.Sprintf("%s[%s]", t.daemon.base(), t.name)
+	return fmt.Sprintf("%s[%s]", t.daemon, t.name)
 }

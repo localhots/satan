@@ -5,6 +5,7 @@ import (
 	"log"
 	"runtime/debug"
 	"sync"
+	"sync/atomic"
 	"time"
 )
 
@@ -55,6 +56,10 @@ const (
 	defaultNumWorkers = 10
 )
 
+var (
+	workerIndex uint64
+)
+
 // Summon creates a new instance of Satan.
 func Summon() *Satan {
 	return &Satan{
@@ -81,11 +86,7 @@ func (s *Satan) AddDaemon(d Daemon) {
 
 // StartDaemons starts all registered daemons.
 func (s *Satan) StartDaemons() {
-	for i := 0; i < defaultNumWorkers; i++ {
-		go func(i int) {
-			s.runWorker(i)
-		}(i)
-	}
+	s.addWorkers(defaultNumWorkers)
 }
 
 // StopDaemons stops all running daemons.
@@ -107,9 +108,23 @@ func (s *Satan) StopDaemons() {
 	log.Printf("Task processing latency statistics:\n%s\n", s.latency.snapshot())
 }
 
-func (s *Satan) runWorker(i int) {
+func (s *Satan) addWorkers(num int) {
+	for i := 0; i < num; i++ {
+		go s.runWorker()
+	}
+}
+
+func (s *Satan) stopWorkers(num int) {
+	for i := 0; i < num; i++ {
+		s.shutdownWorkers <- struct{}{}
+	}
+}
+
+func (s *Satan) runWorker() {
 	s.wgWorkers.Add(1)
 	defer s.wgWorkers.Done()
+
+	i := atomic.AddUint64(&workerIndex, 1)
 	log.Printf("Starting worker #%d", i+1)
 	defer log.Printf("Worker #%d has stopped", i+1)
 

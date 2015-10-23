@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"log"
-	"runtime/debug"
 	"strings"
 	"time"
 
@@ -50,7 +49,6 @@ type BaseDaemon struct {
 	publisher     Publisher
 	self          Daemon
 	name          string
-	stats         *statistics
 	queue         chan<- *task
 	panicHandler  PanicHandler
 	shutdown      chan struct{}

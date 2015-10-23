@@ -11,6 +11,7 @@ import (
 	"github.com/localhots/satan"
 	"github.com/localhots/satan/example/daemons"
 	"github.com/localhots/satan/example/kafka"
+	"github.com/localhots/satan/stats"
 )
 
 func main() {
@@ -29,8 +30,13 @@ func main() {
 	kafka.Initialize(strings.Split(brokers, " "))
 	defer kafka.Shutdown()
 
+	logger := stats.NewStdoutLogger(0)
+	defer logger.Print()
+
 	s := satan.Summon()
 	s.SubscribeFunc = kafka.Subscribe
+	s.Statistics = logger
+
 	s.AddDaemon(&daemons.NumberPrinter{})
 	s.AddDaemon(&daemons.PriceConsumer{})
 

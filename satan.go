@@ -169,11 +169,17 @@ func (s *Satan) processSystemTask(t *task) {
 }
 
 func (s *Satan) processGeneralTask(t *task) {
-	defer t.daemon.base().handlePanic()
 	defer func(start time.Time) {
 		dur := time.Now().UnixNano() - start.UnixNano()
 		t.daemon.base().stats.add(time.Duration(dur))
 	}(time.Now())
+	defer func() {
+		if err := recover(); err != nil {
+			t.daemon.base().handlePanic(err)
+			log.Printf("Daemon %s recovered from a panic\nError: %v\n", t.daemon.base(), err)
+			debug.PrintStack()
+		}
+	}()
 
 	t.actor() // <--- THE ACTION HAPPENS HERE
 }

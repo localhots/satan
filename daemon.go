@@ -172,16 +172,8 @@ func (d *BaseDaemon) base() *BaseDaemon {
 	return d
 }
 
-func (d *BaseDaemon) handlePanic() {
-	err := recover()
-	if err == nil {
-		return
-	}
-
-	d.stats.registerError()
+func (d *BaseDaemon) handlePanic(err interface{}) {
 	if d.panicHandler != nil {
 		d.panicHandler(err)
 	}
-	log.Printf("Daemon %s recovered from a panic\nError: %v\n", d, err)
-	debug.PrintStack()
 }

@@ -89,7 +89,7 @@ func (d *BaseDaemon) SystemProcess(name string, a Actor) {
 
 // Subscribe subscriasdsdfsdgdfgdfsg sdgsdfg sdfgs dfgdfgdfg.
 func (d *BaseDaemon) Subscribe(topic string, fun interface{}) {
-	name := fmt.Sprintf("Subscription for topic %q", topic)
+	name := fmt.Sprintf("subscription for topic %q", topic)
 	d.SystemProcess(name, func() {
 		if d.subscribeFunc == nil {
 			panic(errMissingSubscriptionFun)

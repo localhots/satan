@@ -19,7 +19,7 @@ func (n *NumberPrinter) Startup() {
 		log.Printf("Oh, crap! There was a panic, take a look: %v", err)
 	})
 
-	n.LimitRate(3, 1*time.Second)
+	n.LimitRate(3, time.Second)
 	n.SystemProcess("Random Number Generator", n.generateNumbers)
 }
 

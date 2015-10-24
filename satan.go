@@ -162,7 +162,7 @@ func (s *Satan) processSystemTask(t *task) {
 	}()
 
 	log.Printf("Starting system task %s\n", t)
-	t.actor() // <--- THE ACTION HAPPENS HERE
+	t.actor() // <--- ACTION STARTS HERE
 }
 
 func (s *Satan) processGeneralTask(t *task) {
@@ -183,7 +183,7 @@ func (s *Satan) processGeneralTask(t *task) {
 		}(time.Now())
 	}
 
-	t.actor() // <--- THE ACTION HAPPENS HERE
+	t.actor() // <--- ACTION STARTS HERE
 }
 
 func (t *task) String() string {

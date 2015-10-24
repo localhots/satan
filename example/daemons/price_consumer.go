@@ -22,7 +22,7 @@ func (p *PriceConsumer) Startup() {
 	b.Subscribe("ProductPriceUpdates", func(u PriceUpdate) {
 		log.Printf("Price for %q is now $%.2f", u.Product, u.Amount)
 	})
-	p.LimitRate(5, 1*time.Second)
+	p.LimitRate(5, time.Second)
 }
 
 // Shutdown is empty because PriceConsumer requires no cleanup upon exiting.

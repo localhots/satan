@@ -3,6 +3,7 @@ package satan
 import (
 	"fmt"
 	"log"
+	"os"
 	"runtime/debug"
 	"sync"
 	"sync/atomic"
@@ -14,6 +15,7 @@ type Satan struct {
 	SubscribeFunc SubscribeFunc
 	Publisher     Publisher
 	Statistics    StatsPublisher
+	Logger        *log.Logger
 
 	daemons []Daemon
 	queue   chan *task
@@ -83,6 +85,7 @@ var (
 // Summon creates a new instance of Satan.
 func Summon() *Satan {
 	return &Satan{
+		Logger:          log.New(os.Stdout, "[daemons] ", log.LstdFlags),
 		queue:           make(chan *task),
 		shutdownWorkers: make(chan struct{}),
 		shutdownSystem:  make(chan struct{}),
@@ -96,6 +99,7 @@ func (s *Satan) AddDaemon(d Daemon) {
 	base.subscribeFunc = s.SubscribeFunc
 	base.publisher = s.Publisher
 	base.queue = s.queue
+	base.logger = s.Logger
 	base.shutdown = s.shutdownSystem
 
 	go d.Startup()
@@ -137,11 +141,11 @@ func (s *Satan) runWorker() {
 	defer s.wgWorkers.Done()
 
 	i := atomic.AddUint64(&workerIndex, 1)
-	log.Printf("Starting worker #%d", i)
+	s.Logger.Printf("Starting worker #%d", i)
 
 	defer func() {
 		if err := recover(); err != nil {
-			log.Printf("Worker #%d crashed. Error: %v\n", i, err)
+			s.Logger.Printf("Worker #%d crashed. Error: %v\n", i, err)
 			debug.PrintStack()
 			go s.runWorker() // Restarting worker
 		}
@@ -155,7 +159,7 @@ func (s *Satan) runWorker() {
 			s.Statistics.Add("TaskWait", time.Duration(dur))
 			s.processTask(t)
 		case <-s.shutdownWorkers:
-			log.Printf("Worker #%d has stopped", i)
+			s.Logger.Printf("Worker #%d has stopped", i)
 			return
 		}
 	}
@@ -177,17 +181,17 @@ func (s *Satan) processSystemTask(t *task) {
 	defer s.wgSystem.Done()
 	defer func() {
 		if err := recover(); err != nil {
-			log.Printf("System task %s recovered from a panic\nError: %v\n", t, err)
+			s.Logger.Printf("System task %s recovered from a panic\nError: %v\n", t, err)
 			debug.PrintStack()
 
 			t.createdAt = time.Now()
 			s.queue <- t // Restarting task
 		} else {
-			log.Printf("System task %s has stopped\n", t)
+			s.Logger.Printf("System task %s has stopped\n", t)
 		}
 	}()
 
-	log.Printf("Starting system task %s\n", t)
+	s.Logger.Printf("Starting system task %s\n", t)
 	t.actor() // <--- ACTION STARTS HERE
 }
 
@@ -198,7 +202,7 @@ func (s *Satan) processGeneralTask(t *task) {
 				s.Statistics.Error(t.daemon.base().String())
 			}
 			t.daemon.base().handlePanic(err)
-			log.Printf("Daemon %s recovered from a panic\nError: %v\n", t.daemon.base(), err)
+			s.Logger.Printf("Daemon %s recovered from a panic\nError: %v\n", t.daemon.base(), err)
 			debug.PrintStack()
 		}
 	}()

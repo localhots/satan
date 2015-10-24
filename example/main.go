@@ -2,8 +2,6 @@ package main
 
 import (
 	"flag"
-	"io/ioutil"
-	"log"
 	"os"
 	"os/signal"
 	"strings"
@@ -15,27 +13,20 @@ import (
 )
 
 func main() {
-	var debug bool
 	var brokers string
 
-	flag.BoolVar(&debug, "v", false, "Verbose mode")
 	flag.StringVar(&brokers, "brokers", "127.0.0.1:9092", "Kafka broker addresses separated by space")
 	flag.Parse()
-
-	log.SetOutput(ioutil.Discard)
-	if debug {
-		log.SetOutput(os.Stderr)
-	}
 
 	kafka.Initialize(strings.Split(brokers, " "))
 	defer kafka.Shutdown()
 
-	logger := stats.NewStdoutLogger(0)
-	defer logger.Print()
+	statsLogger := stats.NewStdoutLogger(0)
+	defer statsLogger.Print()
 
 	s := satan.Summon()
 	s.SubscribeFunc = kafka.Subscribe
-	s.Statistics = logger
+	s.Statistics = statsLogger
 
 	s.AddDaemon(&daemons.NumberPrinter{})
 	s.AddDaemon(&daemons.PriceConsumer{})

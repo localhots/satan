@@ -1,7 +1,6 @@
 package daemons
 
 import (
-	"log"
 	"math/rand"
 	"time"
 
@@ -16,7 +15,7 @@ type NumberPrinter struct {
 // Startup sets up panic handler and starts enqueuing number printing jobs.
 func (n *NumberPrinter) Startup() {
 	n.HandlePanics(func(err interface{}) {
-		log.Printf("Oh, crap! There was a panic, take a look: %v", err)
+		n.Logf("Oh, crap! There was a panic, take a look: %v", err)
 	})
 
 	n.LimitRate(3, time.Second)
@@ -44,6 +43,6 @@ func (n *NumberPrinter) makeActor(num int) satan.Actor {
 			panic("Nooooo! Random number generator returned a zero!")
 		}
 
-		log.Println("Number printer says:", num)
+		n.Log("Number printer says:", num)
 	}
 }

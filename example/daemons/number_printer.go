@@ -27,8 +27,8 @@ func (n *NumberPrinter) Shutdown() {}
 
 func (n *NumberPrinter) generateNumbers() {
 	for n.Continue() {
-		if rand.Intn(7) == 0 {
-			panic("Number generator don't work on Sundays!")
+		if rand.Intn(10) == 0 {
+			panic("Number generator refuses to work right now!")
 		}
 		// Generate a random number between 1000 and 9999 and print it
 		num := 1000 + rand.Intn(9000)
@@ -38,11 +38,11 @@ func (n *NumberPrinter) generateNumbers() {
 
 func (n *NumberPrinter) makeActor(num int) satan.Actor {
 	return func() {
-		// Making it crash sometimes
-		if rand.Intn(10) == 0 {
-			panic("Nooooo! Random number generator returned a zero!")
-		}
-
 		n.Log("Number printer says:", num)
+
+		// Making it crash sometimes
+		if num%10 == 0 {
+			panic("Nooooo! Random number generator returned a multiple of ten!")
+		}
 	}
 }

@@ -1,14 +1,14 @@
 package daemons
 
 import (
-	"log"
+	"time"
 
 	"github.com/localhots/satan"
 )
 
 // PriceConsumer consumes price update messages and prints them to the console.
 type PriceConsumer struct {
-	satan.BaseConsumer
+	satan.BaseDaemon
 }
 
 // PriceUpdate describes a price update message.
@@ -19,8 +19,8 @@ type PriceUpdate struct {
 
 // Startup creates a new subscription for ProductPriceUpdates topic.
 func (p *PriceConsumer) Startup() {
-	b.Subscribe("ProductPriceUpdates", func(u PriceUpdate) {
-		log.Printf("Price for %q is now $%.2f", u.Product, u.Amount)
+	p.Subscribe("ProductPriceUpdates", func(u PriceUpdate) {
+		p.Logf("Price for %q is now $%.2f", u.Product, u.Amount)
 	})
 	p.LimitRate(5, time.Second)
 }

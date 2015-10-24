@@ -126,8 +126,11 @@ func (s *Satan) runWorker() {
 	defer log.Printf("Worker #%d has stopped", i)
 
 	for {
+		start := time.Now()
 		select {
 		case t := <-s.queue:
+			dur := time.Now().UnixNano() - start.UnixNano()
+			s.Statistics.Add("TaskWait", time.Duration(dur))
 			s.processTask(t)
 		case <-s.shutdownWorkers:
 			return

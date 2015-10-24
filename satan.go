@@ -13,7 +13,7 @@ import (
 type Satan struct {
 	SubscribeFunc SubscribeFunc
 	Publisher     Publisher
-	Statistics    Statistics
+	Statistics    StatsPublisher
 
 	daemons []Daemon
 	queue   chan *task
@@ -44,9 +44,24 @@ type Publisher interface {
 	Close()
 }
 
-type Statistics interface {
+type StatsManager interface {
+	StatsPublisher
+	StatsFetcher
+}
+
+type StatsPublisher interface {
 	Add(name string, dur time.Duration)
 	Error(name string)
+}
+
+type StatsFetcher interface {
+	Processed(name string) int64
+	Errors(name string) int64
+	Min(name string) int64
+	Max(name string) int64
+	P95(name string) float64
+	Mean(name string) float64
+	StdDev(name string) float64
 }
 
 type task struct {

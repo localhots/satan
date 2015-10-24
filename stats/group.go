@@ -7,10 +7,10 @@ import (
 )
 
 type Group struct {
-	backends []satan.Statistics
+	backends []satan.StatsPublisher
 }
 
-func NewGroup(backends ...satan.Statistics) *Group {
+func NewGroup(backends ...satan.StatsPublisher) *Group {
 	return &Group{
 		backends: backends,
 	}

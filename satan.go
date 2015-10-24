@@ -45,8 +45,8 @@ type Publisher interface {
 }
 
 type Statistics interface {
-	Add(daemonName string, dur time.Duration)
-	Error(daemonName string)
+	Add(name string, dur time.Duration)
+	Error(name string)
 }
 
 type task struct {

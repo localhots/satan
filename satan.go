@@ -138,7 +138,14 @@ func (s *Satan) runWorker() {
 
 	i := atomic.AddUint64(&workerIndex, 1)
 	log.Printf("Starting worker #%d", i)
-	defer log.Printf("Worker #%d has stopped", i)
+
+	defer func() {
+		if err := recover(); err != nil {
+			log.Printf("Worker #%d crashed. Error: %v\n", i, err)
+			debug.PrintStack()
+			go s.runWorker() // Restarting worker
+		}
+	}()
 
 	for {
 		start := time.Now()
@@ -148,6 +155,7 @@ func (s *Satan) runWorker() {
 			s.Statistics.Add("TaskWait", time.Duration(dur))
 			s.processTask(t)
 		case <-s.shutdownWorkers:
+			log.Printf("Worker #%d has stopped", i)
 			return
 		}
 	}

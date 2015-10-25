@@ -34,14 +34,7 @@ func NewLogger(out io.Writer, interval time.Duration) *Logger {
 }
 
 func NewStdoutLogger(interval time.Duration) *Logger {
-	l := &Logger{
-		out:      os.Stdout,
-		interval: interval,
-		stats:    make(map[string]*loggerStats),
-	}
-	go l.printWithInterval()
-
-	return l
+	return NewLogger(os.Stdout, interval)
 }
 
 func (l *Logger) Add(name string, dur time.Duration) {

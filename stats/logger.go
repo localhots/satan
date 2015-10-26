@@ -4,30 +4,22 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"sync"
 	"time"
-
-	"github.com/rcrowley/go-metrics"
 )
 
 type Logger struct {
-	sync.Mutex
+	base
+
 	out      io.Writer
 	interval time.Duration
-	stats    map[string]*loggerStats
-}
-
-type loggerStats struct {
-	time   metrics.Histogram
-	errors metrics.Counter
 }
 
 func NewLogger(out io.Writer, interval time.Duration) *Logger {
 	l := &Logger{
 		out:      out,
 		interval: interval,
-		stats:    make(map[string]*loggerStats),
 	}
+	l.init()
 	go l.printWithInterval()
 
 	return l
@@ -35,14 +27,6 @@ func NewLogger(out io.Writer, interval time.Duration) *Logger {
 
 func NewStdoutLogger(interval time.Duration) *Logger {
 	return NewLogger(os.Stdout, interval)
-}
-
-func (l *Logger) Add(name string, dur time.Duration) {
-	l.metrics(name).time.Update(int64(dur))
-}
-
-func (l *Logger) Error(name string) {
-	l.metrics(name).errors.Inc(1)
 }
 
 func (l *Logger) Print() {
@@ -77,23 +61,4 @@ func (l *Logger) printWithInterval() {
 	for range time.NewTicker(l.interval).C {
 		l.Print()
 	}
-}
-
-func (l *Logger) metrics(name string) *loggerStats {
-	if _, ok := l.stats[name]; !ok {
-		l.Lock()
-		defer l.Unlock()
-
-		// Double checking being protected by mutex
-		if s, ok := l.stats[name]; ok {
-			return s
-		}
-
-		l.stats[name] = &loggerStats{
-			time:   metrics.NewHistogram(metrics.NewUniformSample(1000)),
-			errors: metrics.NewCounter(),
-		}
-	}
-
-	return l.stats[name]
 }

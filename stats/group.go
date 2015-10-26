@@ -2,15 +2,13 @@ package stats
 
 import (
 	"time"
-
-	"github.com/localhots/satan"
 )
 
 type Group struct {
-	backends []satan.StatsPublisher
+	backends []Publisher
 }
 
-func NewGroup(backends ...satan.StatsPublisher) *Group {
+func NewGroup(backends ...Publisher) *Group {
 	return &Group{
 		backends: backends,
 	}

@@ -26,7 +26,7 @@ func main() {
 
 	s := satan.Summon()
 	s.SubscribeFunc = kafka.Subscribe
-	s.Statistics = statsLogger
+	s.DaemonStats = statsLogger
 
 	s.AddDaemon(&daemons.NumberPrinter{})
 	s.AddDaemon(&daemons.PriceConsumer{})

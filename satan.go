@@ -8,17 +8,20 @@ import (
 	"sync"
 	"sync/atomic"
 	"time"
+
+	"github.com/localhots/satan/stats"
 )
 
 // Satan is the master daemon.
 type Satan struct {
 	SubscribeFunc SubscribeFunc
 	Publisher     Publisher
-	Statistics    StatsPublisher
+	DaemonStats   stats.Publisher
 	Logger        *log.Logger
 
-	daemons []Daemon
-	queue   chan *task
+	daemons      []Daemon
+	queue        chan *task
+	runtimeStats stats.Manager
 
 	wgWorkers       sync.WaitGroup
 	wgSystem        sync.WaitGroup
@@ -46,26 +49,6 @@ type Publisher interface {
 	Close()
 }
 
-type StatsManager interface {
-	StatsPublisher
-	StatsFetcher
-}
-
-type StatsPublisher interface {
-	Add(name string, dur time.Duration)
-	Error(name string)
-}
-
-type StatsFetcher interface {
-	Processed(name string) int64
-	Errors(name string) int64
-	Min(name string) int64
-	Max(name string) int64
-	P95(name string) float64
-	Mean(name string) float64
-	StdDev(name string) float64
-}
-
 type task struct {
 	daemon    Daemon
 	actor     Actor
@@ -87,6 +70,7 @@ func Summon() *Satan {
 	return &Satan{
 		Logger:          log.New(os.Stdout, "[daemons] ", log.LstdFlags),
 		queue:           make(chan *task),
+		runtimeStats:    stats.NewBasicStats(),
 		shutdownWorkers: make(chan struct{}),
 		shutdownSystem:  make(chan struct{}),
 	}
@@ -122,6 +106,9 @@ func (s *Satan) StopDaemons() {
 	close(s.shutdownWorkers)
 	s.wgWorkers.Wait()
 	close(s.queue)
+
+	fmt.Println(s.runtimeStats.Fetch(stats.Latency))
+	fmt.Println(s.runtimeStats.Fetch(stats.TaskWait))
 }
 
 func (s *Satan) addWorkers(num int) {
@@ -156,7 +143,7 @@ func (s *Satan) runWorker() {
 		select {
 		case t := <-s.queue:
 			dur := time.Now().UnixNano() - start.UnixNano()
-			s.Statistics.Add("TaskWait", time.Duration(dur))
+			s.runtimeStats.Add(stats.TaskWait, time.Duration(dur))
 			s.processTask(t)
 		case <-s.shutdownWorkers:
 			s.Logger.Printf("Worker #%d has stopped", i)
@@ -167,7 +154,7 @@ func (s *Satan) runWorker() {
 
 func (s *Satan) processTask(t *task) {
 	dur := time.Now().UnixNano() - t.createdAt.UnixNano()
-	s.Statistics.Add("Latency", time.Duration(dur))
+	s.runtimeStats.Add(stats.Latency, time.Duration(dur))
 
 	if t.system {
 		s.processSystemTask(t)
@@ -198,18 +185,18 @@ func (s *Satan) processSystemTask(t *task) {
 func (s *Satan) processGeneralTask(t *task) {
 	defer func() {
 		if err := recover(); err != nil {
-			if s.Statistics != nil {
-				s.Statistics.Error(t.daemon.base().String())
+			if s.DaemonStats != nil {
+				s.DaemonStats.Error(t.daemon.base().String())
 			}
 			t.daemon.base().handlePanic(err)
 			s.Logger.Printf("Daemon %s recovered from a panic\nError: %v\n", t.daemon.base(), err)
 			debug.PrintStack()
 		}
 	}()
-	if s.Statistics != nil {
+	if s.DaemonStats != nil {
 		defer func(start time.Time) {
 			dur := time.Now().UnixNano() - start.UnixNano()
-			s.Statistics.Add(t.daemon.base().String(), time.Duration(dur))
+			s.DaemonStats.Add(t.daemon.base().String(), time.Duration(dur))
 		}(time.Now())
 	}
 

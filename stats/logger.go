@@ -1,7 +1,6 @@
 package stats
 
 import (
-	"fmt"
 	"io"
 	"os"
 	"time"
@@ -30,24 +29,9 @@ func NewStdoutLogger(interval time.Duration) *Logger {
 }
 
 func (l *Logger) Print() {
-	for name, s := range l.stats {
-		fmt.Fprintf(l.out, "%s statistics:\n"+
-			"Processed: %d\n"+
-			"Errors:    %d\n"+
-			"Min:       %.8fms\n"+
-			"Max:       %.8fms\n"+
-			"95%%:       %.8fms\n"+
-			"Mean:      %.8fms\n"+
-			"StdDev:    %.8fms\n",
-			name,
-			s.time.Count(),
-			s.errors.Count(),
-			float64(s.time.Min())/1000000,
-			float64(s.time.Max())/1000000,
-			s.time.Percentile(0.95)/1000000,
-			s.time.Mean()/1000000,
-			s.time.StdDev()/1000000,
-		)
+	for _, s := range l.stats {
+		l.out.Write([]byte(s.String()))
+		l.out.Write([]byte{'\n'})
 		s.time.Clear()
 		s.errors.Clear()
 	}

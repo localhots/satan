@@ -2,38 +2,50 @@ package stats
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
+	"time"
 )
 
 type Server struct {
 	base
+
+	history map[string][]*baseSnapshot
 }
+
+const (
+	serverSnapshotIntervl = 5 * time.Second
+	serverHistorySize     = 360 // 30 minutes of 5 second snapshots
+)
 
 func NewServer() *Server {
 	s := &Server{}
 	s.init()
+	s.history = make(map[string][]*baseSnapshot)
+	go s.takeSnapshots()
 
 	return s
 }
 
-func (s *Server) ServeHTTP(rw http.ResponseWriter, _ *http.Request) {
-	stats := make(map[string]map[string]interface{})
-	for name, stat := range s.stats {
-		stats[name] = map[string]interface{}{
-			"processed": stat.time.Count(),
-			"errors":    stat.errors.Count(),
-			"min":       float64(stat.time.Min()) / 1000000,
-			"mean":      stat.time.Mean() / 1000000,
-			"95%":       stat.time.Percentile(0.95) / 1000000,
-			"max":       float64(stat.time.Max()) / 1000000,
-			"stddev":    stat.time.StdDev() / 1000000,
-		}
-	}
-
-	encoded, err := json.MarshalIndent(stats, "", "    ")
+func (s *Server) History(rw http.ResponseWriter, _ *http.Request) {
+	encoded, err := json.Marshal(s.history)
 	if err != nil {
-		panic(err)
+		http.Error(rw, fmt.Sprintf("%v", err), http.StatusInternalServerError)
+		return
 	}
 
 	rw.Write(encoded)
+}
+
+func (s *Server) takeSnapshots() {
+	for range time.NewTicker(serverSnapshotIntervl).C {
+		s.Lock()
+		for name, stat := range s.stats {
+			if len(s.history[name]) >= serverHistorySize {
+				s.history[name] = s.history[name][1:]
+			}
+			s.history[name] = append(s.history[name], stat.snapshot())
+		}
+		s.Unlock()
+	}
 }

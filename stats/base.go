@@ -2,6 +2,7 @@ package stats
 
 import (
 	"fmt"
+	"math"
 	"sync"
 	"time"
 
@@ -151,13 +152,14 @@ func (s *baseStats) String() string {
 
 func (s *baseStats) snapshot() *baseSnapshot {
 	return &baseSnapshot{
+		Timestamp:    time.Now().UTC().Unix(),
 		ProcessedVal: s.time.Count(),
 		ErrorsVal:    s.errors.Count(),
-		MinVal:       s.time.Min(),
-		MeanVal:      s.time.Mean(),
-		P95Val:       s.time.Percentile(0.95),
-		MaxVal:       s.time.Max(),
-		StdDevVal:    s.time.StdDev(),
+		MinVal:       round(float64(s.time.Min())/1000000, 6),
+		MeanVal:      round(s.time.Mean()/1000000, 6),
+		P95Val:       round(s.time.Percentile(0.95)/1000000, 6),
+		MaxVal:       round(float64(s.time.Max())/1000000, 6),
+		StdDevVal:    round(s.time.StdDev()/1000000, 6),
 	}
 }
 
@@ -166,41 +168,21 @@ func (s *baseStats) snapshot() *baseSnapshot {
 //
 
 type baseSnapshot struct {
-	ProcessedVal int64   `json:"processed"`
-	ErrorsVal    int64   `json:"errors"`
-	MinVal       int64   `json:"min"`
-	MeanVal      float64 `json:"mean"`
-	P95Val       float64 `json:"95%"`
-	MaxVal       int64   `json:"max"`
-	StdDevVal    float64 `json:"stddev"`
+	timestamp int64
+	processed int64
+	errors    int64
+	min       float64
+	mean      float64
+	p95       float64
+	max       float64
+	stddev    float64
 }
 
-func (s *baseSnapshot) Processed() int64 {
-	return s.ProcessedVal
-}
-
-func (s *baseSnapshot) Errors() int64 {
-	return s.ErrorsVal
-}
-
-func (s *baseSnapshot) Min() int64 {
-	return s.MinVal
-}
-
-func (s *baseSnapshot) Mean() float64 {
-	return s.MeanVal
-}
-
-func (s *baseSnapshot) P95() float64 {
-	return s.P95Val
-}
-
-func (s *baseSnapshot) Max() int64 {
-	return s.MaxVal
-}
-
-func (s *baseSnapshot) StdDev() float64 {
-	return s.StdDevVal
+// Implements json.Marshaler
+func (s *baseSnapshot) MarshalJSON() ([]byte, error) {
+	return []byte(fmt.Sprintf("[%d,%d,%d,%.6f,%.6f,%.6f,%.6f,%.6f]",
+		s.timestamp, s.processed, s.errors, s.min,
+		s.mean, s.p95, s.max, s.stddev)), nil
 }
 
 //
@@ -218,4 +200,9 @@ func formatDuration(dur float64) string {
 	default:
 		return fmt.Sprintf("%10.3fs", dur/1000000000)
 	}
+}
+
+func round(num float64, decimals int) float64 {
+	pow := math.Pow(10, float64(decimals))
+	return float64(int(num*pow+0.5)) / pow
 }

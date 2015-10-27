@@ -19,8 +19,10 @@ type Satan struct {
 	DaemonStats   stats.Publisher
 	Logger        *log.Logger
 
-	DefaultNumWorkers uint32
-	ScaleSettings     *ScaleSettings
+	MinNumWorkers uint32
+	MaxNumWorkers uint32
+	numWorkers    int64
+	ScalePlan     *ScalePlan
 
 	daemons      []Daemon
 	queue        chan *task
@@ -52,7 +54,7 @@ type Publisher interface {
 	Close()
 }
 
-type ScaleSettings struct {
+type ScalePlan struct {
 	Interval          time.Duration
 	MinProcessedTasks uint32
 	LatencyThreshold  time.Duration
@@ -75,12 +77,13 @@ var (
 // Summon creates a new instance of Satan.
 func Summon() *Satan {
 	return &Satan{
-		Logger:            log.New(os.Stdout, "[daemons] ", log.LstdFlags),
-		DefaultNumWorkers: 10,
-		queue:             make(chan *task),
-		runtimeStats:      stats.NewBasicStats(),
-		shutdownWorkers:   make(chan struct{}),
-		shutdownSystem:    make(chan struct{}),
+		Logger:          log.New(os.Stdout, "[daemons] ", log.LstdFlags),
+		MinNumWorkers:   10,
+		MaxNumWorkers:   1000,
+		queue:           make(chan *task),
+		runtimeStats:    stats.NewBasicStats(),
+		shutdownWorkers: make(chan struct{}),
+		shutdownSystem:  make(chan struct{}),
 	}
 }
 
@@ -100,9 +103,9 @@ func (s *Satan) AddDaemon(d Daemon) {
 
 // StartDaemons starts all registered daemons.
 func (s *Satan) StartDaemons() {
-	s.addWorkers(s.DefaultNumWorkers)
+	s.addWorkers(s.MinNumWorkers)
 
-	if s.ScaleSettings != nil {
+	if s.ScalePlan != nil {
 		go s.autoScale()
 	}
 }
@@ -138,6 +141,9 @@ func (s *Satan) stopWorkers(num uint32) {
 func (s *Satan) runWorker() {
 	s.wgWorkers.Add(1)
 	defer s.wgWorkers.Done()
+
+	atomic.AddInt64(&s.numWorkers, 1)
+	defer atomic.AddInt64(&s.numWorkers, -1)
 
 	i := atomic.AddUint64(&workerIndex, 1)
 	s.Logger.Printf("Starting worker #%d", i)
@@ -216,7 +222,7 @@ func (s *Satan) processGeneralTask(t *task) {
 }
 
 func (s *Satan) autoScale() {
-	t := time.NewTicker(s.ScaleSettings.Interval)
+	t := time.NewTicker(s.ScalePlan.Interval)
 	defer t.Stop()
 
 	for {
@@ -232,18 +238,24 @@ func (s *Satan) autoScale() {
 func (s *Satan) adjustNumWorkers() {
 	lat := s.runtimeStats.Fetch(stats.Latency)
 	tw := s.runtimeStats.Fetch(stats.TaskWait)
-	if lat.Processed() < int64(s.ScaleSettings.MinProcessedTasks) {
+	if lat.Processed() < int64(s.ScalePlan.MinProcessedTasks) {
 		return
 	}
 
-	if lat.P95() > float64(s.ScaleSettings.LatencyThreshold) {
-		s.addWorkers(s.ScaleSettings.AdjustmentStep)
+	if uint32(s.numWorkers)+s.ScalePlan.AdjustmentStep > s.MaxNumWorkers {
+		return
+	}
+	if lat.P95() > float64(s.ScalePlan.LatencyThreshold) {
+		s.addWorkers(s.ScalePlan.AdjustmentStep)
 		s.runtimeStats.Reset()
 		return
 	}
 
-	if tw.P95() > float64(s.ScaleSettings.TaskWaitThreshold) {
-		s.stopWorkers(s.ScaleSettings.AdjustmentStep)
+	if uint32(s.numWorkers)-s.ScalePlan.AdjustmentStep < s.MinNumWorkers {
+		return
+	}
+	if tw.P95() > float64(s.ScalePlan.TaskWaitThreshold) {
+		s.stopWorkers(s.ScalePlan.AdjustmentStep)
 		s.runtimeStats.Reset()
 		return
 	}

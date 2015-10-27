@@ -6,7 +6,6 @@ import (
 	"os"
 	"runtime/debug"
 	"sync"
-	"sync/atomic"
 	"time"
 
 	"github.com/localhots/satan/stats"
@@ -62,10 +61,6 @@ const (
 	DefaultNumWorkers = 10
 )
 
-var (
-	workerIndex uint64
-)
-
 // Summon creates a new instance of Satan.
 func Summon() *Satan {
 	return &Satan{
@@ -94,6 +89,7 @@ func (s *Satan) AddDaemon(d Daemon) {
 
 // StartDaemons starts all registered daemons.
 func (s *Satan) StartDaemons() {
+	s.Logger.Printf("Starting %d workers", s.NumWorkers)
 	for i := 0; i < s.NumWorkers; i++ {
 		go s.runWorker()
 	}
@@ -118,13 +114,9 @@ func (s *Satan) StopDaemons() {
 func (s *Satan) runWorker() {
 	s.wgWorkers.Add(1)
 	defer s.wgWorkers.Done()
-
-	i := atomic.AddUint64(&workerIndex, 1)
-	s.Logger.Printf("Starting worker #%d", i)
-
 	defer func() {
 		if err := recover(); err != nil {
-			s.Logger.Printf("Worker #%d crashed. Error: %v\n", i, err)
+			s.Logger.Printf("Worker crashed. Error: %v\n", err)
 			debug.PrintStack()
 			go s.runWorker() // Restarting worker
 		}
@@ -138,7 +130,6 @@ func (s *Satan) runWorker() {
 			s.runtimeStats.Add(stats.TaskWait, time.Duration(dur))
 			s.processTask(t)
 		case <-s.shutdownWorkers:
-			s.Logger.Printf("Worker #%d has stopped", i)
 			return
 		}
 	}

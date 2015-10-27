@@ -132,8 +132,8 @@ func (s *Satan) runWorker() {
 }
 
 func (s *Satan) processTask(t *task) {
-	dur := time.Now().UnixNano() - t.createdAt.UnixNano()
-	s.runtimeStats.Add(stats.Latency, time.Duration(dur))
+	dur := time.Now().Sub(t.createdAt)
+	s.runtimeStats.Add(stats.Latency, dur)
 
 	if t.system {
 		s.processSystemTask(t)
@@ -174,8 +174,8 @@ func (s *Satan) processGeneralTask(t *task) {
 	}()
 	if s.DaemonStats != nil {
 		defer func(start time.Time) {
-			dur := time.Now().UnixNano() - start.UnixNano()
-			s.DaemonStats.Add(t.daemon.base().String(), time.Duration(dur))
+			dur := time.Now().Sub(start)
+			s.DaemonStats.Add(t.daemon.base().String(), dur)
 		}(time.Now())
 	}
 

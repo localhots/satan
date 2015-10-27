@@ -34,7 +34,8 @@ type Stats interface {
 
 type base struct {
 	sync.Mutex
-	stats map[string]*baseStats
+	stats      map[string]*baseStats
+	sampleSize int
 }
 
 type baseStats struct {
@@ -44,8 +45,9 @@ type baseStats struct {
 }
 
 const (
-	Latency  = "Latency"
-	TaskWait = "TaskWait"
+	DefaultSampleSize = 1000
+	Latency           = "Latency"
+	TaskWait          = "TaskWait"
 )
 
 func (b *base) Add(name string, dur time.Duration) {
@@ -122,9 +124,12 @@ func (b *base) metrics(name string) *baseStats {
 			return s
 		}
 
+		if b.sampleSize == 0 {
+			b.sampleSize = DefaultSampleSize
+		}
 		b.stats[name] = &baseStats{
 			name:   name,
-			time:   metrics.NewHistogram(metrics.NewUniformSample(1000)),
+			time:   metrics.NewHistogram(metrics.NewUniformSample(b.sampleSize)),
 			errors: metrics.NewCounter(),
 		}
 	}

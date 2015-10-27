@@ -19,6 +19,9 @@ type Satan struct {
 	DaemonStats   stats.Publisher
 	Logger        *log.Logger
 
+	DefaultNumWorkers int
+	AutoScale         bool
+
 	daemons      []Daemon
 	queue        chan *task
 	runtimeStats stats.Manager
@@ -57,10 +60,6 @@ type task struct {
 	name      string
 }
 
-const (
-	defaultNumWorkers = 10
-)
-
 var (
 	workerIndex uint64
 )
@@ -68,11 +67,13 @@ var (
 // Summon creates a new instance of Satan.
 func Summon() *Satan {
 	return &Satan{
-		Logger:          log.New(os.Stdout, "[daemons] ", log.LstdFlags),
-		queue:           make(chan *task),
-		runtimeStats:    stats.NewBasicStats(),
-		shutdownWorkers: make(chan struct{}),
-		shutdownSystem:  make(chan struct{}),
+		Logger:            log.New(os.Stdout, "[daemons] ", log.LstdFlags),
+		DefaultNumWorkers: 10,
+		AutoScale:         false,
+		queue:             make(chan *task),
+		runtimeStats:      stats.NewBasicStats(),
+		shutdownWorkers:   make(chan struct{}),
+		shutdownSystem:    make(chan struct{}),
 	}
 }
 
@@ -92,7 +93,7 @@ func (s *Satan) AddDaemon(d Daemon) {
 
 // StartDaemons starts all registered daemons.
 func (s *Satan) StartDaemons() {
-	s.addWorkers(defaultNumWorkers)
+	s.addWorkers(s.DefaultNumWorkers)
 }
 
 // StopDaemons stops all running daemons.

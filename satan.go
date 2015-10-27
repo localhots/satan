@@ -108,7 +108,6 @@ func (s *Satan) StopDaemons() {
 	close(s.queue)
 
 	fmt.Println(s.runtimeStats.Fetch(stats.Latency))
-	fmt.Println(s.runtimeStats.Fetch(stats.TaskWait))
 }
 
 func (s *Satan) runWorker() {
@@ -123,11 +122,8 @@ func (s *Satan) runWorker() {
 	}()
 
 	for {
-		start := time.Now()
 		select {
 		case t := <-s.queue:
-			dur := time.Now().UnixNano() - start.UnixNano()
-			s.runtimeStats.Add(stats.TaskWait, time.Duration(dur))
 			s.processTask(t)
 		case <-s.shutdownWorkers:
 			return

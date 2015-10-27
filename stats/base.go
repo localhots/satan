@@ -10,16 +10,13 @@ import (
 
 type Manager interface {
 	Publisher
-	Fetcher
+	Fetch(name string) Stats
+	Reset()
 }
 
 type Publisher interface {
 	Add(name string, dur time.Duration)
 	Error(name string)
-}
-
-type Fetcher interface {
-	Fetch(name string) Stats
 }
 
 type Stats interface {
@@ -60,6 +57,13 @@ func (b *base) Error(name string) {
 
 func (b *base) Fetch(name string) Stats {
 	return b.metrics(name)
+}
+
+func (b *base) Reset() {
+	for _, s := range b.stats {
+		s.time.Clear()
+		s.errors.Clear()
+	}
 }
 
 func (s *baseStats) Processed() int64 {

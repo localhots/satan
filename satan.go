@@ -58,7 +58,7 @@ type task struct {
 }
 
 const (
-	DefaultNumWorkers = 10
+	DefaultNumWorkers = 100
 )
 
 // Summon creates a new instance of Satan.

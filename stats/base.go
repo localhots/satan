@@ -152,14 +152,14 @@ func (s *baseStats) String() string {
 
 func (s *baseStats) snapshot() *baseSnapshot {
 	return &baseSnapshot{
-		Timestamp:    time.Now().UTC().Unix(),
-		ProcessedVal: s.time.Count(),
-		ErrorsVal:    s.errors.Count(),
-		MinVal:       round(float64(s.time.Min())/1000000, 6),
-		MeanVal:      round(s.time.Mean()/1000000, 6),
-		P95Val:       round(s.time.Percentile(0.95)/1000000, 6),
-		MaxVal:       round(float64(s.time.Max())/1000000, 6),
-		StdDevVal:    round(s.time.StdDev()/1000000, 6),
+		timestamp: time.Now().UTC().Unix(),
+		processed: s.time.Count(),
+		errors:    s.errors.Count(),
+		min:       round(float64(s.time.Min())/1000000, 6),
+		mean:      round(s.time.Mean()/1000000, 6),
+		p95:       round(s.time.Percentile(0.95)/1000000, 6),
+		max:       round(float64(s.time.Max())/1000000, 6),
+		stddev:    round(s.time.StdDev()/1000000, 6),
 	}
 }
 

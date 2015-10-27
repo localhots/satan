@@ -164,6 +164,8 @@ func (d *BaseDaemon) Logf(format string, v ...interface{}) {
 	d.logger.Printf(format, v...)
 }
 
+func (d *BaseDaemon) Shutdown() {}
+
 // String returns the name of the Deamon unerlying struct.
 func (d *BaseDaemon) String() string {
 	if d.name == "" {

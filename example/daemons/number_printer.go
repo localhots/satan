@@ -22,9 +22,6 @@ func (n *NumberPrinter) Startup() {
 	n.SystemProcess("Random Number Generator", n.generateNumbers)
 }
 
-// Shutdown is empty due to the lack of cleanup.
-func (n *NumberPrinter) Shutdown() {}
-
 func (n *NumberPrinter) generateNumbers() {
 	for n.Continue() {
 		if rand.Intn(10) == 0 {

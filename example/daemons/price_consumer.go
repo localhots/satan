@@ -24,6 +24,3 @@ func (p *PriceConsumer) Startup() {
 	})
 	p.LimitRate(5, time.Second)
 }
-
-// Shutdown is empty because PriceConsumer requires no cleanup upon exiting.
-func (p *PriceConsumer) Shutdown() {}

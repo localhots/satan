@@ -34,6 +34,7 @@ func (s *Server) History(rw http.ResponseWriter, _ *http.Request) {
 		return
 	}
 
+	rw.Header().Add("Access-Control-Allow-Origin", "*")
 	rw.Write(encoded)
 }
 

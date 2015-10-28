@@ -150,41 +150,6 @@ func (s *baseStats) String() string {
 	)
 }
 
-func (s *baseStats) snapshot() *baseSnapshot {
-	return &baseSnapshot{
-		timestamp: time.Now().UTC().Unix(),
-		processed: s.time.Count(),
-		errors:    s.errors.Count(),
-		min:       round(float64(s.time.Min())/1000000, 6),
-		mean:      round(s.time.Mean()/1000000, 6),
-		p95:       round(s.time.Percentile(0.95)/1000000, 6),
-		max:       round(float64(s.time.Max())/1000000, 6),
-		stddev:    round(s.time.StdDev()/1000000, 6),
-	}
-}
-
-//
-// baseSnapshot
-//
-
-type baseSnapshot struct {
-	timestamp int64
-	processed int64
-	errors    int64
-	min       float64
-	mean      float64
-	p95       float64
-	max       float64
-	stddev    float64
-}
-
-// Implements json.Marshaler
-func (s *baseSnapshot) MarshalJSON() ([]byte, error) {
-	return []byte(fmt.Sprintf("[%d,%d,%d,%.6f,%.6f,%.6f,%.6f,%.6f]",
-		s.timestamp, s.processed, s.errors, s.min,
-		s.mean, s.p95, s.max, s.stddev)), nil
-}
-
 //
 // Helpers
 //

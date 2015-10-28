@@ -47,6 +47,7 @@ func (s *Server) takeSnapshots() {
 			}
 			s.history[name] = append(s.history[name], stat.snapshot())
 		}
+		s.Reset()
 		s.Unlock()
 	}
 }

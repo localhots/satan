@@ -1,0 +1,43 @@
+body {
+    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    font-size: 13px;
+}
+
+#app {
+    width: 1000px;
+    margin: 0 auto;
+    /*background-color: #eee;*/
+}
+
+.daemon {
+    margin-top: 40px;
+}
+
+.daemon h1 {
+    padding: 0;
+    margin: 0;
+    font-weight: 400;
+}
+
+.daemon .stats {
+    width: 305px;
+    height: 60px;
+}
+.daemon dt, .daemon dd {
+    margin: 0;
+    float: left;
+    line-height: 20px;
+}
+.daemon dt {
+    width: 75px;
+    color: #aaa;
+}
+.daemon dt.narrow {
+    width: 50px;
+}
+.daemon dd {
+    width: 80px;
+    margin-right: 10px;
+    font-family: monospace;
+    text-align: right;
+}

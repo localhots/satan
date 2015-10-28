@@ -1,6 +1,6 @@
 body {
     font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
-    font-size: 13px;
+    font-size: 16px;
 }
 
 #app {
@@ -15,7 +15,7 @@ body {
 }
     .daemon .left-block {
         float: left;
-        width: 300px;
+        width: 350px;
         height: 150px;
         /*background-color: #cfc;*/
     }
@@ -24,10 +24,22 @@ body {
             margin: 0;
             font-weight: 400;
         }
+        .daemon .left-block dl {
+            width: 170px;
+        }
+        .daemon .left-block dt, .daemon .left-block dd {
+            float: left;
+            margin: 0 5px 0 0;
+            width: 80px;
+            line-height: 30px;
+        }
+        .daemon .left-block dd {
+            font-family: monospace;
+        }
 
     .daemon .boxplot {
         float: left;
         height: 150px;
         /*background-color: #fcc;*/
-        border: #ccc 1px solid;
+        /*border: #ccc 1px solid;*/
     }

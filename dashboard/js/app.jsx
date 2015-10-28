@@ -54,6 +54,11 @@ var Daemon = React.createClass({
             <div className="daemon">
                 <div className="left-block">
                     <h1>{this.props.name}</h1>
+                    <dl>
+                        <dt>Processed:</dt><dd>{last.processed}</dd>
+                        <dt>Errors:</dt><dd>{last.errors}</dd>
+                        <dt>Median:</dt><dd>{formatDuration(last.median)}</dd>
+                    </dl>
                 </div>
                 <BoxPlot points={this.props.points} />
             </div>

@@ -61,6 +61,7 @@ var Daemon = React.createClass({
                     </dl>
                 </div>
                 <BoxPlot points={this.props.points} />
+                <LineChart points={this.props.points} />
             </div>
         );
     }
@@ -151,6 +152,57 @@ var BoxPlot = React.createClass({
             <div className="boxplot">
                 <svg width="455" height="150">
                     {this.props.points.map(renderBox)}
+                </svg>
+            </div>
+        );
+    }
+});
+
+var LineChart = React.createClass({
+    render: function() {
+        var points = this.props.points,
+            maxHeight = 140,
+            padding = 5,
+            colors = {processed: "#46f", errors: "#f64"};
+
+        var min = 0, max;
+        points.map(function(point) {
+            if (max === undefined || point.processed > max) {
+                max = point.processed;
+            }
+        });
+
+        var makePath = function(points, key) {
+            if (max === 0) {
+                return;
+            }
+
+            var path = points.map(function(point, i) {
+                var val = point[key];
+                var width = 15;
+                var x = i * width;
+                var y = maxHeight - Math.round((val-min)/(max-min) * maxHeight) + padding;
+
+                if (i === 0) {
+                    return "M"+x+","+y;
+                } else {
+                    return "L"+x+","+y;
+                }
+            });
+
+            return (
+                <path
+                    d={path.join(" ")}
+                    strokeWidth={2}
+                    style={{stroke: colors[key], fill: "transparent"}} />
+            );
+        };
+
+        return (
+            <div className="linechart">
+                <svg width="455" height="150">
+                    {makePath(points, "processed")}
+                    {makePath(points, "errors")}
                 </svg>
             </div>
         );

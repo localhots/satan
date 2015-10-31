@@ -133,45 +133,37 @@ var BoxPlot = React.createClass({
                         x2={x2-2}
                         y1={maxY}
                         y2={maxY}
-                        strokeWidth={1}
-                        style={{stroke: "#aaa"}} />
-                    <line key="max-bar"
+                        className="tick" />
+                    <line key="max-whisker"
                         x1={x1+width/2}
                         x2={x1+width/2}
                         y1={maxY}
                         y2={p75Y}
-                        strokeDasharray="3,1"
-                        strokeWidth={1}
-                        style={{stroke: "#ccc"}} />
-                    <line key="min-bar"
+                        className="whisker" />
+                    <line key="min-whisker"
                         x1={x1+width/2}
                         x2={x1+width/2}
                         y1={minY}
                         y2={p25Y}
-                        strokeDasharray="3,1"
-                        strokeWidth={1}
-                        style={{stroke: "#ccc"}} />
+                        className="whisker" />
                     <rect key="iqr"
                         x={x1}
                         y={p75Y}
                         width={width}
                         height={p25Y - p75Y}
-                        strokeWidth={1}
-                        style={{fill: "#f0f0f0", stroke: "#888"}} />
+                        className="iqr" />
                     <line key="median"
                         x1={x1}
                         x2={x2}
                         y1={medianY}
                         y2={medianY}
-                        strokeWidth={2}
-                        style={{stroke: "#444"}} />
+                        className="median" />
                     <line key="min"
                         x1={x1+2}
                         x2={x2-2}
                         y1={minY}
                         y2={minY}
-                        strokeWidth={1}
-                        style={{stroke: "#aaa"}} />
+                        className="tick" />
                 </g>
             );
         };
@@ -189,8 +181,7 @@ var LineChart = React.createClass({
     render: function() {
         var points = this.props.points,
             maxHeight = 140,
-            padding = 5,
-            colors = {processed: "#46f", errors: "#f64"};
+            padding = 5;
 
         var min = 0, max;
         points.map(function(point) {
@@ -220,14 +211,19 @@ var LineChart = React.createClass({
             return (
                 <path
                     d={path.join(" ")}
-                    strokeWidth={2}
-                    style={{stroke: colors[key], fill: "transparent"}} />
+                    className={"line "+key} />
             );
         };
 
         return (
             <div className="linechart">
                 <svg>
+                    <line key="y-axis"
+                        x1={2}
+                        x2={2}
+                        y1={0}
+                        y2={maxHeight}
+                        className="y-axis" />
                     {makePath(points, "processed")}
                     {makePath(points, "errors")}
                 </svg>

@@ -41,7 +41,7 @@ body {
 
 .linechart {
     float: left;
-    width: 330px;
+    width: 300px;
     height: 150px;
     margin-right: 15px;
 }
@@ -49,6 +49,16 @@ body {
         width: 100%;
         height: 100%;
     }
+    .linechart .line {
+        stroke-width: 1px;
+        fill: transparent;
+    }
+        .linechart .line.processed {
+            stroke: #46f;
+        }
+        .linechart .line.errors {
+            stroke: #f64;
+        }
 
 
 /*
@@ -57,12 +67,30 @@ body {
 
 .boxplot {
     float: left;
-    width: 455px;
-    height: 150px;
+    width: 485px;
+    height: 200px;
 }
     .boxplot svg {
         width: 100%;
         height: 100%;
+    }
+    .boxplot .tick {
+        stroke-width: 1px;
+        stroke: #aaa;
+    }
+    .boxplot .whisker {
+        stroke-width: 1px;
+        stroke: #ccc;
+        stroke-dasharray: 3, 1;
+    }
+    .boxplot .iqr {
+        stroke-width: 1px;
+        fill: #f0f0f0;
+        stroke: #888;
+    }
+    .boxplot .median {
+        stroke-width: 2px;
+        stroke: #444;
     }
 
 .daemon {

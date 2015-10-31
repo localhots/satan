@@ -1,16 +1,16 @@
 function formatDuration(dur) {
     if (dur < 10) {
-        return "" + dur + "ms";
+        return "" + dur.toFixed(3) + "ms";
     } else if (dur < 100) {
-        return "" + dur.toFixed(5) + "ms";
+        return "" + dur.toFixed(2) + "ms";
     } else if (dur < 1000) {
-        return "" + dur.toFixed(4) + "ms";
+        return "" + dur.toFixed(1) + "ms";
     } else if (dur < 10000) {
-        return "" + (dur / 1000).toFixed(6) + "s";
+        return "" + (dur / 1000).toFixed(3) + "s";
     } else if (dur < 60000) {
-        return "" + (dur / 1000).toFixed(5) + "s";
+        return "" + (dur / 1000).toFixed(2) + "s";
     } else {
-        dur = Math.round(dur / 1000);
+        dur = Math.ceil(dur / 1000);
         var m = Math.floor(dur / 60);
         var s = dur % 60;
         return "" + m + "m" + s + "s";

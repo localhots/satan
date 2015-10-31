@@ -42,7 +42,41 @@ var Dashboard = React.createClass({
 
     render: function() {
         return (
-            <div className="daemons">{this.renderDaemons()}</div>
+            <div className="dashboard">
+                <Header />
+                <div className="daemons">{this.renderDaemons()}</div>
+            </div>
+        );
+    }
+});
+
+var Header = React.createClass({
+    render: function() {
+        return (
+            <div className="header">
+                <div className="col-name">Daemon</div>
+                <div className="col-processed">Processed</div>
+                <div className="col-errors">Errors</div>
+                <div className="col-min">Min</div>
+                <div className="col-median">Median</div>
+                <div className="col-max">Max</div>
+            </div>
+        );
+    }
+});
+
+var StatsRow = React.createClass({
+    render: function() {
+        var value = this.props.value;
+        return (
+            <div className="stats">
+                <div className="col-name">{this.props.name}</div>
+                <div className="col-processed">{value.processed}</div>
+                <div className="col-errors">{value.errors}</div>
+                <div className="col-min">{formatDuration(value.min)}</div>
+                <div className="col-median">{formatDuration(value.median)}</div>
+                <div className="col-max">{formatDuration(value.max)}</div>
+            </div>
         );
     }
 });
@@ -52,16 +86,11 @@ var Daemon = React.createClass({
         var last = this.props.points[this.props.points.length - 1];
         return (
             <div className="daemon">
+                <StatsRow name={this.props.name} value={last} />
                 <div className="left-block">
-                    <h1>{this.props.name}</h1>
-                    <dl>
-                        <dt>Processed:</dt><dd>{last.processed}</dd>
-                        <dt>Errors:</dt><dd>{last.errors}</dd>
-                        <dt>Median:</dt><dd>{formatDuration(last.median)}</dd>
-                    </dl>
+                    <LineChart points={this.props.points} />
                 </div>
                 <BoxPlot points={this.props.points} />
-                <LineChart points={this.props.points} />
             </div>
         );
     }
@@ -161,7 +190,7 @@ var BoxPlot = React.createClass({
 var LineChart = React.createClass({
     render: function() {
         var points = this.props.points,
-            maxHeight = 140,
+            maxHeight = 90,
             padding = 5,
             colors = {processed: "#46f", errors: "#f64"};
 
@@ -200,7 +229,7 @@ var LineChart = React.createClass({
 
         return (
             <div className="linechart">
-                <svg width="455" height="150">
+                <svg width="300" height="100">
                     {makePath(points, "processed")}
                     {makePath(points, "errors")}
                 </svg>

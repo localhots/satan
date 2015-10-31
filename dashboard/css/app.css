@@ -6,77 +6,65 @@ body {
 }
 
 #app {
-    width: 1260px;
+    width: 800px;
     margin: 0 auto;
-    /*background-color: #ccc;*/
 }
 
-.header {
-    width: 100%;
-    height: 30px;
+/*
+ * Table
+ */
+
+.table-row {
+    width: 800px;
+    height: 40px;
 }
-    .header > div {
-        float: left;
-        line-height: 30px;
-        text-align: center;
+.table-cell {
+    float: left;
+    width: 120px;
+    line-height: 40px;
+    text-align: right;
+}
+    .table-cell.col-name {
+        width: 200px;
+        text-align: left;
         font-weight: 600;
-        border-right: #666 1px solid;
+    }
+.table-header .table-cell {
+    font-weight: 600;
+    border-bottom: #666 1px solid;
+}
+
+
+/*
+ * Line chart
+ */
+
+.linechart {
+    float: left;
+    width: 330px;
+    height: 150px;
+    margin-right: 15px;
+}
+    .linechart svg {
+        width: 100%;
+        height: 100%;
     }
 
-.col-name      { width: 200px; }
-.col-processed { width: 100px; }
-.col-errors    { width: 100px; }
-.col-min       { width: 100px; }
-.col-median    { width: 100px; }
-.col-max       { width: 100px; }
 
-.daemon {
-    margin-top: 40px;
+/*
+ * Box plot
+ */
+
+.boxplot {
+    float: left;
+    width: 455px;
     height: 150px;
 }
-    .daemon .stats {
+    .boxplot svg {
         width: 100%;
-        height: 30px;
+        height: 100%;
     }
-        .daemon .stats > div {
-            float: left;
-            line-height: 30px;
-            text-align: right;
-            padding-right: 5px;
-            border-right: #666 1px solid;
-        }
-        .daemon .stats > div.col-name {
-            text-align: left;
-            font-weight: 600;
-        }
-    .daemon .left-block {
-        float: left;
-        width: 330px;
-        height: 150px;
-        /*background-color: #cfc;*/
-    }
-        .daemon .left-block h1 {
-            padding: 0;
-            margin: 0;
-            font-weight: 400;
-        }
-        .daemon .left-block dl {
-            width: 170px;
-        }
-        .daemon .left-block dt, .daemon .left-block dd {
-            float: left;
-            margin: 0 5px 0 0;
-            width: 80px;
-            line-height: 30px;
-        }
-        .daemon .left-block dd {
-            font-family: monospace;
-        }
 
-    .daemon .boxplot {
-        float: left;
-        height: 150px;
-        margin-right: 20px;
-        /*background-color: #fcc;*/
-        /*border: #ccc 1px solid;*/
-    }
+.daemon {
+    width: 100%;
+}

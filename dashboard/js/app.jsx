@@ -53,13 +53,13 @@ var Dashboard = React.createClass({
 var Header = React.createClass({
     render: function() {
         return (
-            <div className="header">
-                <div className="col-name">Daemon</div>
-                <div className="col-processed">Processed</div>
-                <div className="col-errors">Errors</div>
-                <div className="col-min">Min</div>
-                <div className="col-median">Median</div>
-                <div className="col-max">Max</div>
+            <div className="table-row table-header">
+                <div className="table-cell col-name">Daemon</div>
+                <div className="table-cell col-processed">Processed</div>
+                <div className="table-cell col-errors">Errors</div>
+                <div className="table-cell col-min">Min</div>
+                <div className="table-cell col-median">Median</div>
+                <div className="table-cell col-max">Max</div>
             </div>
         );
     }
@@ -69,13 +69,13 @@ var StatsRow = React.createClass({
     render: function() {
         var value = this.props.value;
         return (
-            <div className="stats">
-                <div className="col-name">{this.props.name}</div>
-                <div className="col-processed">{value.processed}</div>
-                <div className="col-errors">{value.errors}</div>
-                <div className="col-min">{formatDuration(value.min)}</div>
-                <div className="col-median">{formatDuration(value.median)}</div>
-                <div className="col-max">{formatDuration(value.max)}</div>
+            <div className="table-row">
+                <div className="table-cell col-name">{this.props.name}</div>
+                <div className="table-cell col-processed">{value.processed}</div>
+                <div className="table-cell col-errors">{value.errors}</div>
+                <div className="table-cell col-min">{formatDuration(value.min)}</div>
+                <div className="table-cell col-median">{formatDuration(value.median)}</div>
+                <div className="table-cell col-max">{formatDuration(value.max)}</div>
             </div>
         );
     }
@@ -87,9 +87,7 @@ var Daemon = React.createClass({
         return (
             <div className="daemon">
                 <StatsRow name={this.props.name} value={last} />
-                <div className="left-block">
-                    <LineChart points={this.props.points} />
-                </div>
+                <LineChart points={this.props.points} />
                 <BoxPlot points={this.props.points} />
             </div>
         );
@@ -179,7 +177,7 @@ var BoxPlot = React.createClass({
         };
         return (
             <div className="boxplot">
-                <svg width="455" height="150">
+                <svg>
                     {this.props.points.map(renderBox)}
                 </svg>
             </div>
@@ -190,7 +188,7 @@ var BoxPlot = React.createClass({
 var LineChart = React.createClass({
     render: function() {
         var points = this.props.points,
-            maxHeight = 90,
+            maxHeight = 140,
             padding = 5,
             colors = {processed: "#46f", errors: "#f64"};
 
@@ -229,7 +227,7 @@ var LineChart = React.createClass({
 
         return (
             <div className="linechart">
-                <svg width="300" height="100">
+                <svg>
                     {makePath(points, "processed")}
                     {makePath(points, "errors")}
                 </svg>

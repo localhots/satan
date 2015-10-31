@@ -180,8 +180,8 @@ var BoxPlot = React.createClass({
 var LineChart = React.createClass({
     render: function() {
         var points = this.props.points,
-            maxHeight = 140,
-            padding = 5;
+            maxHeight = 130,
+            padding = 3;
 
         var min = 0, max;
         points.map(function(point) {
@@ -198,8 +198,8 @@ var LineChart = React.createClass({
             var path = points.map(function(point, i) {
                 var val = point[key];
                 var width = 15;
-                var x = i * width;
-                var y = maxHeight - Math.round((val-min)/(max-min) * maxHeight) + padding;
+                var x = i * width + padding;
+                var y = maxHeight - Math.round((val-min)/(max-min) * maxHeight) + 16;
 
                 if (i === 0) {
                     return "M"+x+","+y;
@@ -218,14 +218,26 @@ var LineChart = React.createClass({
         return (
             <div className="linechart">
                 <svg>
-                    <line key="y-axis"
-                        x1={2}
-                        x2={2}
-                        y1={0}
-                        y2={maxHeight}
-                        className="y-axis" />
                     {makePath(points, "processed")}
                     {makePath(points, "errors")}
+                    <line key="y-axis"
+                        x1={3}
+                        x2={3}
+                        y1={0}
+                        y2={147}
+                        className="axis" />
+                    <path key="y-arrow"
+                        d="M3,0 5,7 1,7 Z"
+                        className="arrow" />
+                    <line key="x-axis"
+                        x1={3}
+                        x2={300}
+                        y1={147}
+                        y2={147}
+                        className="axis" />
+                    <path key="x-arrow"
+                        d="M300,147 293,149 293,145 Z"
+                        className="arrow" />
                 </svg>
             </div>
         );

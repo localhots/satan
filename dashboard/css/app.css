@@ -59,6 +59,13 @@ body {
         .linechart .line.errors {
             stroke: #f64;
         }
+    .linechart .axis {
+        stroke: #aaa;
+    }
+    .linechart .arrow {
+        stroke: #aaa;
+        fill: #aaa;
+    }
 
 
 /*

@@ -63,11 +63,11 @@ body {
             stroke: #f64;
         }
     .linechart .axis {
-        stroke: #aaa;
+        stroke: #888;
     }
     .linechart .arrow {
-        stroke: #aaa;
-        fill: #aaa;
+        stroke: #888;
+        fill: #888;
     }
 
 

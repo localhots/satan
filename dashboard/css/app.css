@@ -23,15 +23,18 @@ body {
     width: 120px;
     line-height: 40px;
     text-align: right;
+    font-family: monospace;
 }
     .table-cell.col-name {
         width: 200px;
         text-align: left;
         font-weight: 600;
+        font-family: inherit;
     }
 .table-header .table-cell {
     font-weight: 600;
     border-bottom: #666 1px solid;
+    font-family: inherit;
 }
 
 

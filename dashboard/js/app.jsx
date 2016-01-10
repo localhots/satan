@@ -179,11 +179,17 @@ var BoxPlot = React.createClass({
 
 var LineChart = React.createClass({
     render: function() {
-        var points = this.props.points,
-            maxHeight = 130,
-            padding = 3;
+        var width = 950,
+            height = 120,
+            paddingLeft = 30,
+            paddingTop = 10,
+            paddingBottom = 20;
 
-        var min = 0, max;
+        var points = this.props.points,
+            maxHeight = height - paddingTop - paddingBottom,
+            padding = 30;
+
+        var min = 0, max = 0;
         points.map(function(point) {
             if (max === undefined || point.processed > max) {
                 max = point.processed;
@@ -195,49 +201,76 @@ var LineChart = React.createClass({
                 return;
             }
 
-            var path = points.map(function(point, i) {
+            var npoints = points.map(function(point, i) {
                 var val = point[key];
                 var width = 15;
                 var x = i * width + padding;
-                var y = maxHeight - Math.round((val-min)/(max-min) * maxHeight) + 16;
+                var y = maxHeight - Math.round((val-min)/(max-min) * maxHeight) + paddingTop;
+
+                return [x, y];
+            });
+
+            var path = npoints.map(function(point, i) {
+                var x = point[0], y = point[1];
 
                 if (i === 0) {
                     return "M"+x+","+y;
                 } else {
                     return "L"+x+","+y;
                 }
+            }).join(" ");
+
+            var dots = npoints.map(function(point, i) {
+                var x = point[0], y = point[1];
+
+                var r = 2; // Radius
+
+                return <circle key={"dot-"+ i}
+                    cx={x}
+                    cy={y}
+                    r={r}
+                    className={"dot "+ key} />
             });
 
             return (
-                <path
-                    d={path.join(" ")}
-                    className={"line "+key} />
+                <g key={key}>
+                    <path
+                        d={path}
+                        className={"line "+ key} />
+                    {dots}
+                </g>
             );
         };
+
+        // TODO: Define magic numbers from below here
+        var yMaxX = paddingLeft - 3,
+            yMaxY = paddingTop + 5,
+            xLabel1x = paddingLeft,
+            xLabel2x = paddingLeft + 15 * 6;
+
+        var xlabels = Array.apply(null, Array(10)).map(function(_, i){
+            return <text key={"x-label-"+ i}
+                x={paddingLeft + (15 * 6 * i)}
+                y={110}
+                textAnchor="middle"
+                className="axis-label">
+                {"-"+ (10-i) + "m"}
+            </text>
+        });
 
         return (
             <div className="linechart">
                 <svg>
                     {makePath(points, "processed")}
                     {makePath(points, "errors")}
-                    <line key="y-axis"
-                        x1={3}
-                        x2={3}
-                        y1={0}
-                        y2={147}
-                        className="axis" />
-                    <path key="y-arrow"
-                        d="M3,0 5,7 1,7 Z"
-                        className="arrow" />
-                    <line key="x-axis"
-                        x1={3}
-                        x2={300}
-                        y1={147}
-                        y2={147}
-                        className="axis" />
-                    <path key="x-arrow"
-                        d="M300,147 293,149 293,145 Z"
-                        className="arrow" />
+                    <line key="y-axis" x1={30} x2={30} y1={0} y2={100} className="axis" />
+                    <path key="y-arrow" d="M30,0 32,7 28,7 Z" className="arrow" />
+                    <text key="y-max" x={yMaxX} y={yMaxY} textAnchor="end"className="axis-label">{max}</text>
+                    <text key="y-zero" x={27} y={100} textAnchor="end" className="axis-label">0</text>
+                    <line key="x-axis" x1={30} x2={950} y1={100} y2={100} className="axis" />
+                    <path key="x-arrow" d="M950,100 943,102 943,98 Z" className="arrow" />
+                    <text key="x-label-now" x={940} y={110} textAnchor="end" className="axis-label">now</text>
+                    {xlabels}
                 </svg>
             </div>
         );

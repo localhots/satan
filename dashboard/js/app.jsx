@@ -210,6 +210,13 @@ var LineChart = React.createClass({
                 return [x, y];
             });
 
+            var numMaxPoints = points.map(function(point, i) {
+                var val = point[key];
+                return val === max ? 1 : 0;
+            }).reduce(function(sum, val) {
+                return sum + val;
+            });
+
             var path = npoints.map(function(point, i) {
                 var x = point[0], y = point[1];
 
@@ -224,6 +231,14 @@ var LineChart = React.createClass({
                 var x = point[0], y = point[1];
 
                 var r = 2; // Radius
+                // Hide leftmost and zero points
+                if (x === paddingLeft || y === height - paddingBottom) {
+                    r = 0;
+                }
+                // Highlight max values if less then 50% of values are max
+                if (y == paddingTop && numMaxPoints / points.length < .5) {
+                    r = 4;
+                }
 
                 return <circle key={"dot-"+ i}
                     cx={x}

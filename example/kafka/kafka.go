@@ -18,6 +18,9 @@ type ConsumerState struct {
 	Offset    int64 `json:"offset"`
 }
 
+// Subscriber is a dummy structure that implements satan.Subscriber interface.
+type Subscriber struct{}
+
 // Stream is an implementation of satan.Stremer for Kafka messaging queue.
 type Stream struct {
 	messages chan []byte
@@ -68,7 +71,7 @@ func Shutdown() {
 }
 
 // Subscribe creates a satan.Streamer implementation for Kafka messaging queue.
-func Subscribe(consumer, topic string) satan.Streamer {
+func (s Subscriber) Subscribe(consumer, topic string) satan.Streamer {
 	c, ok := consumers[consumer]
 	if !ok {
 		panic(fmt.Errorf("Consumer %q has no config", consumer))

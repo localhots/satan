@@ -45,23 +45,23 @@ type Daemon interface {
 
 // BaseDaemon is the parent structure for all daemons.
 type BaseDaemon struct {
-	self          Daemon
-	name          string
-	queue         chan<- *task
-	logger        *log.Logger
-	panicHandler  PanicHandler
-	subscribeFunc SubscribeFunc
-	publisher     Publisher
-	shutdown      chan struct{}
-	limit         *ratelimit.Bucket
+	self         Daemon
+	name         string
+	queue        chan<- *task
+	logger       *log.Logger
+	panicHandler PanicHandler
+	subscriber   Subscriber
+	publisher    Publisher
+	shutdown     chan struct{}
+	limit        *ratelimit.Bucket
 }
 
 // PanicHandler is a function that handles panics. Duh!
 type PanicHandler func(interface{})
 
 var (
-	errMissingSubscriptionFun = errors.New("subscription function is not set up")
-	errMissingPublisher       = errors.New("publisher is not set up")
+	errMissingSubscriber = errors.New("subscriber is not set up")
+	errMissingPublisher  = errors.New("publisher is not set up")
 )
 
 // Process creates a task and then adds it to processing queue.
@@ -92,11 +92,11 @@ func (d *BaseDaemon) SystemProcess(name string, a Actor) {
 func (d *BaseDaemon) Subscribe(topic string, fun interface{}) {
 	name := fmt.Sprintf("subscription for topic %q", topic)
 	d.SystemProcess(name, func() {
-		if d.subscribeFunc == nil {
-			panic(errMissingSubscriptionFun)
+		if d.subscriber == nil {
+			panic(errMissingSubscriber)
 		}
 
-		stream := d.subscribeFunc(d.String(), topic)
+		stream := d.subscriber.Subscribe(d.String(), topic)
 		defer stream.Close()
 
 		cf, err := caller.New(fun)

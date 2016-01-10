@@ -143,6 +143,16 @@ func (s *Satan) processTask(t *task) {
 }
 
 func (s *Satan) processSystemTask(t *task) {
+	// Abort starting a system task if shutdown was already called. Otherwise
+	// incrementing a wait group counter will cause a panic. This should be an
+	// extremely rare scenario when a system task crashes and tries to restart
+	// after a shutdown call.
+	select {
+	case <-s.shutdownSystem:
+		return
+	default:
+	}
+
 	s.wgSystem.Add(1)
 	defer s.wgSystem.Done()
 	defer func() {

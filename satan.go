@@ -64,6 +64,7 @@ const (
 // Summon creates a new instance of Satan.
 func Summon() *Satan {
 	return &Satan{
+		DaemonStats:     &stats.Void{},
 		Logger:          log.New(os.Stdout, "[daemons] ", log.LstdFlags),
 		NumWorkers:      DefaultNumWorkers,
 		queue:           make(chan *task),
@@ -174,20 +175,16 @@ func (s *Satan) processSystemTask(t *task) {
 func (s *Satan) processGeneralTask(t *task) {
 	defer func() {
 		if err := recover(); err != nil {
-			if s.DaemonStats != nil {
-				s.DaemonStats.Error(t.daemon.base().String())
-			}
+			s.DaemonStats.Error(t.daemon.base().String())
 			t.daemon.base().handlePanic(err)
 			s.Logger.Printf("Daemon %s recovered from a panic\nError: %v\n", t.daemon.base(), err)
 			debug.PrintStack()
 		}
 	}()
-	if s.DaemonStats != nil {
-		defer func(start time.Time) {
-			dur := time.Now().Sub(start)
-			s.DaemonStats.Add(t.daemon.base().String(), dur)
-		}(time.Now())
-	}
+	defer func(start time.Time) {
+		dur := time.Now().Sub(start)
+		s.DaemonStats.Add(t.daemon.base().String(), dur)
+	}(time.Now())
 
 	t.actor() // <--- ACTION STARTS HERE
 }

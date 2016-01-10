@@ -141,6 +141,10 @@ var BoxPlot = React.createClass({
         });
 
         var renderBox = function(point, i) {
+            if (point.max === 0) {
+                return;
+            }
+
             var relativeY = function(val) {
                 return maxHeight - Math.round((val-min)/(max-min) * maxHeight);
             };

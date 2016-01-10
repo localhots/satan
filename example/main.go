@@ -5,6 +5,7 @@ import (
 	"os"
 	"os/signal"
 	"strings"
+	"syscall"
 
 	"github.com/localhots/satan"
 	"github.com/localhots/satan/example/daemons"
@@ -40,6 +41,12 @@ func main() {
 	defer s.StopDaemons()
 
 	sig := make(chan os.Signal)
-	signal.Notify(sig, os.Interrupt)
-	<-sig
+	signal.Notify(sig, syscall.SIGINT, syscall.SIGHUP)
+	switch <-sig {
+	case syscall.SIGHUP:
+		s.StopDaemons()
+		s.StartDaemons()
+	case syscall.SIGINT:
+		return
+	}
 }

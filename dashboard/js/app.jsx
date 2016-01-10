@@ -130,6 +130,9 @@ var BoxPlot = React.createClass({
             valueInterval = 5,
             maxHeight = chartHeight - padTop - padBottom;
 
+        // Skipping first point
+        points.shift();
+
         var min, max;
         points.map(function(point) {
             if (min === undefined || point.min < min) {
@@ -151,7 +154,7 @@ var BoxPlot = React.createClass({
 
             var boxWidth = 10;
 
-            var x1 = (boxWidth + valueInterval) * i + padLeft + valueInterval;
+            var x1 = (boxWidth + valueInterval)*i + padLeft + 2*valueInterval;
             var x2 = x1 + boxWidth;
             var minY = relativeY(point.min);
             var p25Y = relativeY(point.p25);
@@ -204,6 +207,16 @@ var BoxPlot = React.createClass({
         var yMaxX = padLeft - 3,
             yMaxY = padTop + 5;
 
+        var xlabels = Array.apply(null, Array(10)).map(function(_, i){
+            return <text key={"x-label-"+ i}
+                x={padLeft + (15 * 6 * i)}
+                y={chartHeight - padBottom}
+                textAnchor="middle"
+                className="axis-label">
+                {"-"+ (10-i) + "m"}
+            </text>
+        });
+
         return (
             <div className="boxplot">
                 <svg>
@@ -216,6 +229,7 @@ var BoxPlot = React.createClass({
                     <line key="x-axis" x1={padLeft} x2={950} y1={maxHeight} y2={maxHeight} className="axis" />
                     <path key="x-arrow" d="M950,140 943,142 943,138 Z" className="arrow" />
                     <text key="x-label-now" x={940} y={chartHeight - padBottom} textAnchor="end" className="axis-label">now</text>
+                    {xlabels}
                 </svg>
             </div>
         );

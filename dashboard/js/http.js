@@ -39,5 +39,10 @@ function getURL(url, params, callback) {
             }
         }
     };
-    xhr.send(null);
+
+    try {
+        xhr.send(null);
+    } catch (e) {
+        callback({error: e});
+    }
 }

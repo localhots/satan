@@ -31,7 +31,6 @@ function getURL(url, params, callback) {
     }
 
     var xhr = getXHR();
-    xhr.open('GET', url, true);
     xhr.onreadystatechange = function() {
         if (xhr.readyState === 4) {
             if(xhr.status === 200) {
@@ -39,10 +38,10 @@ function getURL(url, params, callback) {
             }
         }
     };
-
-    try {
-        xhr.send(null);
-    } catch (e) {
+    xhr.onerror = function(e) {
         callback({error: e});
-    }
+    };
+
+    xhr.open('GET', url, true);
+    xhr.send(null);
 }

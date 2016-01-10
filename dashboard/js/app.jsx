@@ -9,6 +9,12 @@ var Dashboard = React.createClass({
 
     reload: function() {
         getURL("http://127.0.0.1:6464/stats.json", {}, function(resp) {
+            if (resp.error !== undefined) {
+                console.log("Stats server is offline");
+                setTimeout(this.reload, 3000);
+                return
+            }
+
             var newState = {};
             var decode = function(point) {
                 return {

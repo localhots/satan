@@ -29,8 +29,27 @@ var Dashboard = React.createClass({
                     max:       point[8],
                 }
             };
+            var padWithValues = function(points, target) {
+                var pointsToAdd = target - points.length;
+                for (var i = 0; i < pointsToAdd; i++) {
+                    points.unshift({
+                        timestamp: 0,
+                        processed: 0,
+                        errors:    0,
+                        min:       0,
+                        p25:       0,
+                        mean:      0,
+                        median:    0,
+                        p75:       0,
+                        max:       0,
+                    });
+                }
+
+                return points
+            };
             for (name in resp) {
                 newState[name] = resp[name].map(decode);
+                newState[name] = padWithValues(newState[name], 61);
             }
             this.setState(newState);
             setTimeout(this.reload, 3000);
@@ -189,7 +208,7 @@ var BoxPlot = React.createClass({
                     <line key="y-axis" x1={padLeft} x2={padLeft} y1={0} y2={maxHeight} className="axis" />
                     <path key="y-arrow" d="M30,0 32,7 28,7 Z" className="arrow" />
                     <text key="y-max" x={yMaxX} y={yMaxY} textAnchor="end"className="axis-label">{max.toFixed(1)}</text>
-                    <text key="y-zero" x={27} y={100} textAnchor="end" className="axis-label">0</text>
+                    <text key="y-zero" x={27} y={140} textAnchor="end" className="axis-label">0</text>
                     <line key="x-axis" x1={padLeft} x2={950} y1={maxHeight} y2={maxHeight} className="axis" />
                     <path key="x-arrow" d="M950,140 943,142 943,138 Z" className="arrow" />
                     <text key="x-label-now" x={940} y={chartHeight - padBottom} textAnchor="end" className="axis-label">now</text>

@@ -73,6 +73,9 @@ body {
 .axis {
     stroke: #888;
 }
+    .axis.light {
+        stroke: #ddd;
+    }
 .arrow {
     stroke: #888;
     fill: #888;

@@ -221,15 +221,15 @@ var BoxPlot = React.createClass({
             <div className="boxplot">
                 <svg>
                     <text key="title" x={-70} y={10} textAnchor="middle" transform="rotate(270)" className="axis-label">Speed</text>
-                    {this.props.points.map(renderBox)}
                     <line key="y-axis" x1={padLeft} x2={padLeft} y1={0} y2={maxHeight} className="axis" />
                     <path key="y-arrow" d="M30,0 32,7 28,7 Z" className="arrow" />
                     <text key="y-max" x={yMaxX} y={yMaxY} textAnchor="end"className="axis-label">{max.toFixed(1)}</text>
                     <text key="y-zero" x={27} y={140} textAnchor="end" className="axis-label">0</text>
-                    <line key="x-axis" x1={padLeft} x2={950} y1={maxHeight} y2={maxHeight} className="axis" />
+                    <line key="x-axis" x1={padLeft} x2={950} y1={maxHeight} y2={maxHeight} className="axis light" />
                     <path key="x-arrow" d="M950,140 943,142 943,138 Z" className="arrow" />
                     <text key="x-label-now" x={940} y={chartHeight - padBottom} textAnchor="end" className="axis-label">now</text>
                     {xlabels}
+                    {this.props.points.map(renderBox)}
                 </svg>
             </div>
         );

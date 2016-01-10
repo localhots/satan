@@ -93,11 +93,16 @@ var Header = React.createClass({
 var StatsRow = React.createClass({
     render: function() {
         var value = this.props.value;
+        var errorsClasses = ["table-cell", "col-errors"];
+        if (value.errors > 0) {
+            errorsClasses.push("attn");
+        }
+
         return (
             <div className="table-row">
                 <div className="table-cell col-name">{this.props.name}</div>
                 <div className="table-cell col-processed">{value.processed}</div>
-                <div className="table-cell col-errors">{value.errors}</div>
+                <div className={errorsClasses.join(" ")}>{value.errors}</div>
                 <div className="table-cell col-min">{formatDuration(value.min)}</div>
                 <div className="table-cell col-median">{formatDuration(value.median)}</div>
                 <div className="table-cell col-max">{formatDuration(value.max)}</div>

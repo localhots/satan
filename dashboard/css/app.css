@@ -25,6 +25,10 @@ body {
     text-align: right;
     font-family: monospace;
 }
+    .table-cell.attn {
+        font-weight: 600;
+        color: red;
+    }
     .table-cell.col-name {
         width: 350px;
         text-align: left;

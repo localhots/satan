@@ -7,6 +7,7 @@ def main():
     source = open(".gitmodules").read()
     paths = re.findall(r"path = (.*)", source)
 
+    print "github.com/localhots/satan {}".format(path_sha1("."))
     for path in paths:
         print "{repo} {sha}".format(
             repo = path[7:],

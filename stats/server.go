@@ -13,9 +13,22 @@ type Server struct {
 	history map[string][]*serverStatsSnapshot
 }
 
+type serverStatsSnapshot struct {
+	timestamp int64
+	processed int64
+	errors    int64
+	min       float64
+	p25       float64
+	mean      float64
+	median    float64
+	p75       float64
+	max       float64
+}
+
 const (
-	serverSnapshotIntervl = 3 * time.Second
-	serverHistorySize     = 30
+	// 60 of 10 second snapshots is 10 minutes worth of stats
+	serverSnapshotIntervl = 10 * time.Second
+	serverHistorySize     = 61 // +1 extra
 )
 
 func NewServer() *Server {
@@ -58,6 +71,7 @@ func (s *Server) takeSnapshots() {
 
 func makeServerStatsSnapshot(s *baseStats) *serverStatsSnapshot {
 	ps := s.time.Percentiles([]float64{0.25, 0.5, 0.75})
+
 	return &serverStatsSnapshot{
 		timestamp: time.Now().UTC().Unix(),
 		processed: s.time.Count(),
@@ -69,18 +83,6 @@ func makeServerStatsSnapshot(s *baseStats) *serverStatsSnapshot {
 		p75:       round(ps[2]/1000000, 6),
 		max:       round(float64(s.time.Max())/1000000, 6),
 	}
-}
-
-type serverStatsSnapshot struct {
-	timestamp int64
-	processed int64
-	errors    int64
-	min       float64
-	p25       float64
-	mean      float64
-	median    float64
-	p75       float64
-	max       float64
 }
 
 // Implements json.Marshaler

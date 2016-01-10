@@ -31,7 +31,7 @@ func main() {
 	server.Start()
 
 	s := satan.Summon()
-	s.SubscribeFunc = kafka.Subscribe
+	s.Subscriber = kafka.Subscriber{}
 	s.DaemonStats = stats.NewGroup(statsLogger, statsServer)
 
 	s.AddDaemon(&daemons.NumberPrinter{})

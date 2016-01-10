@@ -97,8 +97,13 @@ var Daemon = React.createClass({
 var BoxPlot = React.createClass({
     render: function(){
         var points = this.props.points,
-            maxHeight = 140,
-            padding = 5;
+            chartWidth = 950,
+            chartHeight = 170,
+            padLeft = 30,
+            padTop = 10,
+            padBottom = 20,
+            valueInterval = 5,
+            maxHeight = chartHeight - padTop - padBottom;
 
         var min, max;
         points.map(function(point) {
@@ -112,14 +117,13 @@ var BoxPlot = React.createClass({
 
         var renderBox = function(point, i) {
             var relativeY = function(val) {
-                return maxHeight - Math.round((val-min)/(max-min) * maxHeight) + padding;
+                return maxHeight - Math.round((val-min)/(max-min) * maxHeight);
             };
 
-            var width = 10;
-            var padding = 5;
+            var boxWidth = 10;
 
-            var x1 = (width + padding) * i + padding;
-            var x2 = x1 + width;
+            var x1 = (boxWidth + valueInterval) * i + padLeft + valueInterval;
+            var x2 = x1 + boxWidth;
             var minY = relativeY(point.min);
             var p25Y = relativeY(point.p25);
             var medianY = relativeY(point.median);
@@ -135,21 +139,21 @@ var BoxPlot = React.createClass({
                         y2={maxY}
                         className="tick" />
                     <line key="max-whisker"
-                        x1={x1+width/2}
-                        x2={x1+width/2}
+                        x1={x1+boxWidth/2}
+                        x2={x1+boxWidth/2}
                         y1={maxY}
                         y2={p75Y}
                         className="whisker" />
                     <line key="min-whisker"
-                        x1={x1+width/2}
-                        x2={x1+width/2}
+                        x1={x1+boxWidth/2}
+                        x2={x1+boxWidth/2}
                         y1={minY}
                         y2={p25Y}
                         className="whisker" />
                     <rect key="iqr"
                         x={x1}
                         y={p75Y}
-                        width={width}
+                        width={boxWidth}
                         height={p25Y - p75Y}
                         className="iqr" />
                     <line key="median"
@@ -167,10 +171,22 @@ var BoxPlot = React.createClass({
                 </g>
             );
         };
+
+        var yMaxX = padLeft - 3,
+            yMaxY = padTop + 5;
+
         return (
             <div className="boxplot">
                 <svg>
+                    <text key="title" x={-70} y={10} textAnchor="middle" transform="rotate(270)" className="axis-label">Speed</text>
                     {this.props.points.map(renderBox)}
+                    <line key="y-axis" x1={padLeft} x2={padLeft} y1={0} y2={maxHeight} className="axis" />
+                    <path key="y-arrow" d="M30,0 32,7 28,7 Z" className="arrow" />
+                    <text key="y-max" x={yMaxX} y={yMaxY} textAnchor="end"className="axis-label">{max.toFixed(1)}</text>
+                    <text key="y-zero" x={27} y={100} textAnchor="end" className="axis-label">0</text>
+                    <line key="x-axis" x1={padLeft} x2={950} y1={maxHeight} y2={maxHeight} className="axis" />
+                    <path key="x-arrow" d="M950,140 943,142 943,138 Z" className="arrow" />
+                    <text key="x-label-now" x={940} y={chartHeight - padBottom} textAnchor="end" className="axis-label">now</text>
                 </svg>
             </div>
         );
@@ -179,17 +195,16 @@ var BoxPlot = React.createClass({
 
 var LineChart = React.createClass({
     render: function() {
-        var width = 950,
-            height = 120,
-            paddingLeft = 30,
-            paddingTop = 10,
-            paddingBottom = 20;
-
         var points = this.props.points,
-            maxHeight = height - paddingTop - paddingBottom,
-            padding = 30;
+            chartWidth = 950,
+            chartHeight = 120,
+            padLeft = 30,
+            padTop = 10,
+            padBottom = 20,
+            valueInterval = 15;
+            maxHeight = chartHeight - padTop - padBottom;
 
-        var min = 0, max = 0;
+        var max = 0;
         points.map(function(point) {
             if (max === undefined || point.processed > max) {
                 max = point.processed;
@@ -203,19 +218,18 @@ var LineChart = React.createClass({
 
             var npoints = points.map(function(point, i) {
                 var val = point[key];
-                var width = 15;
-                var x = i * width + padding;
-                var y = maxHeight - Math.round((val-min)/(max-min) * maxHeight) + paddingTop;
+                var x = i * valueInterval + padLeft;
+                var y = maxHeight - Math.round(val/max * maxHeight) + padTop;
 
                 return [x, y];
             });
 
-            var numMaxPoints = points.map(function(point, i) {
+            var maxPointsRatio = points.map(function(point, i) {
                 var val = point[key];
                 return val === max ? 1 : 0;
             }).reduce(function(sum, val) {
                 return sum + val;
-            });
+            }) / points.length;
 
             var path = npoints.map(function(point, i) {
                 var x = point[0], y = point[1];
@@ -232,11 +246,11 @@ var LineChart = React.createClass({
 
                 var r = 2; // Radius
                 // Hide leftmost and zero points
-                if (x === paddingLeft || y === height - paddingBottom) {
+                if (x === padLeft || y === chartHeight - padBottom) {
                     r = 0;
                 }
-                // Highlight max values if less then 50% of values are max
-                if (y == paddingTop && numMaxPoints / points.length < .5) {
+                // Highlight max values if less then 25% of values are max
+                if (y == padTop && maxPointsRatio <= .25) {
                     r = 4;
                 }
 
@@ -258,14 +272,12 @@ var LineChart = React.createClass({
         };
 
         // TODO: Define magic numbers from below here
-        var yMaxX = paddingLeft - 3,
-            yMaxY = paddingTop + 5,
-            xLabel1x = paddingLeft,
-            xLabel2x = paddingLeft + 15 * 6;
+        var yMaxX = padLeft - 3,
+            yMaxY = padTop + 5;
 
         var xlabels = Array.apply(null, Array(10)).map(function(_, i){
             return <text key={"x-label-"+ i}
-                x={paddingLeft + (15 * 6 * i)}
+                x={padLeft + (15 * 6 * i)}
                 y={110}
                 textAnchor="middle"
                 className="axis-label">
@@ -276,9 +288,10 @@ var LineChart = React.createClass({
         return (
             <div className="linechart">
                 <svg>
+                    <text key="title" x={-50} y={10} textAnchor="middle" transform="rotate(270)" className="axis-label">Throughput</text>
                     {makePath(points, "processed")}
                     {makePath(points, "errors")}
-                    <line key="y-axis" x1={30} x2={30} y1={0} y2={100} className="axis" />
+                    <line key="y-axis" x1={padLeft} x2={padLeft} y1={0} y2={100} className="axis" />
                     <path key="y-arrow" d="M30,0 32,7 28,7 Z" className="arrow" />
                     <text key="y-max" x={yMaxX} y={yMaxY} textAnchor="end"className="axis-label">{max}</text>
                     <text key="y-zero" x={27} y={100} textAnchor="end" className="axis-label">0</text>

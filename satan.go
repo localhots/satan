@@ -16,7 +16,7 @@ type Satan struct {
 	Subscriber  Subscriber
 	Publisher   Publisher
 	DaemonStats stats.Publisher
-	Logger      *log.Logger
+	Logger      Logger
 	NumWorkers  int
 
 	daemons      []Daemon
@@ -49,6 +49,12 @@ type Streamer interface {
 type Publisher interface {
 	Publish(msg []byte)
 	Close()
+}
+
+// Logger is the interface that implements minimal logging functions.
+type Logger interface {
+	Printf(format string, v ...interface{})
+	Println(v ...interface{})
 }
 
 type task struct {

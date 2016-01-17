@@ -3,7 +3,6 @@ package satan
 import (
 	"errors"
 	"fmt"
-	"log"
 	"strings"
 	"time"
 
@@ -48,7 +47,7 @@ type BaseDaemon struct {
 	self         Daemon
 	name         string
 	queue        chan<- *task
-	logger       *log.Logger
+	logger       Logger
 	panicHandler PanicHandler
 	subscriber   Subscriber
 	publisher    Publisher
@@ -128,10 +127,10 @@ func (d *BaseDaemon) Publish(msg []byte) {
 func (d *BaseDaemon) LimitRate(times int, per time.Duration) {
 	rate := float64(time.Second) / float64(per) * float64(times)
 	if rate <= 0 {
-		d.logger.Println("Daemon %s processing rate was limited to %d. Using 1 instead", d.base(), rate)
+		d.Logf("Daemon %s processing rate was limited to %d. Using 1 instead", d.base(), rate)
 		rate = 1.0
 	}
-	d.logger.Printf("Daemon %s processing rate is limited to %.2f ops/s", d.base(), rate)
+	d.Logf("Daemon %s processing rate is limited to %.2f ops/s", d.base(), rate)
 	d.limit = ratelimit.NewBucketWithRate(rate, 1)
 }
 
@@ -157,11 +156,15 @@ func (d *BaseDaemon) Continue() bool {
 }
 
 func (d *BaseDaemon) Log(v ...interface{}) {
-	d.logger.Println(v...)
+	if d.logger != nil {
+		d.logger.Println(v...)
+	}
 }
 
 func (d *BaseDaemon) Logf(format string, v ...interface{}) {
-	d.logger.Printf(format, v...)
+	if d.logger != nil {
+		d.logger.Printf(format, v...)
+	}
 }
 
 func (d *BaseDaemon) Shutdown() {}

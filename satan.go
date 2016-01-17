@@ -66,6 +66,8 @@ type task struct {
 }
 
 const (
+	// DefaultNumWorkers is the default number of workers that would process
+	// tasks.
 	DefaultNumWorkers = 100
 )
 

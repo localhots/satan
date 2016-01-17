@@ -155,18 +155,22 @@ func (d *BaseDaemon) Continue() bool {
 	}
 }
 
+// Log logs values using satan.Logger.Println function.
 func (d *BaseDaemon) Log(v ...interface{}) {
 	if d.logger != nil {
 		d.logger.Println(v...)
 	}
 }
 
+// Logf logs values using satan.Logger.Printf function.
 func (d *BaseDaemon) Logf(format string, v ...interface{}) {
 	if d.logger != nil {
 		d.logger.Printf(format, v...)
 	}
 }
 
+// Shutdown is the empty implementation of the daemons' Shutdown function that
+// is inherited and used by default.
 func (d *BaseDaemon) Shutdown() {}
 
 // String returns the name of the Deamon unerlying struct.

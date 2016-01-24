@@ -185,15 +185,15 @@ func (s *Shezmu) processSystemTask(t *task) {
 func (s *Shezmu) processGeneralTask(t *task) {
 	defer func() {
 		if err := recover(); err != nil {
-			s.DaemonStats.Error(t.daemon.base().String())
+			s.DaemonStats.Error(t.daemon.String())
 			t.daemon.base().handlePanic(err)
-			s.Logger.Printf("Daemon %s recovered from a panic\nError: %v\n", t.daemon.base(), err)
+			s.Logger.Printf("Daemon %s recovered from a panic\nError: %v\n", t.daemon, err)
 			debug.PrintStack()
 		}
 	}()
 	defer func(start time.Time) {
 		dur := time.Now().Sub(start)
-		s.DaemonStats.Add(t.daemon.base().String(), dur)
+		s.DaemonStats.Add(t.daemon.String(), dur)
 	}(time.Now())
 
 	t.actor() // <--- ACTION STARTS HERE

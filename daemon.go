@@ -37,6 +37,9 @@ type Daemon interface {
 	// close channels, process the last batch of items, etc.
 	Shutdown()
 
+	// String returns the name of a daemon.
+	String() string
+
 	// base is a (hack) function that allows the Daemon interface to reference
 	// underlying BaseDaemon structure.
 	base() *BaseDaemon

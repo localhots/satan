@@ -98,6 +98,12 @@ func (s *Shezmu) AddDaemon(d Daemon) {
 	s.daemons = append(s.daemons, d)
 }
 
+// ClearDaemons clears the list of added daemons. StopDaemons() function MUST be
+// called before calling ClearDaemons().
+func (s *Shezmu) ClearDaemons() {
+	s.daemons = []Daemon{}
+}
+
 // StartDaemons starts all registered daemons.
 func (s *Shezmu) StartDaemons() {
 	s.Logger.Printf("Starting %d workers", s.NumWorkers)

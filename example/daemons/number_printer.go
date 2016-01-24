@@ -4,12 +4,12 @@ import (
 	"math/rand"
 	"time"
 
-	"github.com/localhots/satan"
+	"github.com/localhots/shezmu"
 )
 
 // NumberPrinter is a daemon that prints numbers once in a while.
 type NumberPrinter struct {
-	satan.BaseDaemon
+	shezmu.BaseDaemon
 }
 
 // Startup sets up panic handler and starts enqueuing number printing jobs.
@@ -33,7 +33,7 @@ func (n *NumberPrinter) generateNumbers() {
 	}
 }
 
-func (n *NumberPrinter) makeActor(num int) satan.Actor {
+func (n *NumberPrinter) makeActor(num int) shezmu.Actor {
 	return func() {
 		n.Log("Number printer says:", num)
 

@@ -1,3 +1,3 @@
-# Satan example application
+# Shezmu example application
 
 Describe the app here.

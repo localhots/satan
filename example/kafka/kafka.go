@@ -9,7 +9,7 @@ import (
 	"sync"
 
 	"github.com/Shopify/sarama"
-	"github.com/localhots/satan"
+	"github.com/localhots/shezmu"
 )
 
 // ConsumerState contains data that is required to create a Kafka consumer.
@@ -18,10 +18,10 @@ type ConsumerState struct {
 	Offset    int64 `json:"offset"`
 }
 
-// Subscriber is a dummy structure that implements satan.Subscriber interface.
+// Subscriber is a dummy structure that implements shezmu.Subscriber interface.
 type Subscriber struct{}
 
-// Stream is an implementation of satan.Stremer for Kafka messaging queue.
+// Stream is an implementation of shezmu.Stremer for Kafka messaging queue.
 type Stream struct {
 	messages chan []byte
 	shutdown chan struct{}
@@ -44,7 +44,7 @@ func Initialize(brokers []string) {
 	defer log.Println("Kafka is initialized")
 
 	conf := sarama.NewConfig()
-	conf.ClientID = "Satan Example"
+	conf.ClientID = "Shezmu Example"
 
 	var err error
 	if kafkaClient, err = sarama.NewClient(brokers, conf); err != nil {
@@ -70,8 +70,8 @@ func Shutdown() {
 	}
 }
 
-// Subscribe creates a satan.Streamer implementation for Kafka messaging queue.
-func (s Subscriber) Subscribe(consumer, topic string) satan.Streamer {
+// Subscribe creates a shezmu.Streamer implementation for Kafka messaging queue.
+func (s Subscriber) Subscribe(consumer, topic string) shezmu.Streamer {
 	c, ok := consumers[consumer]
 	if !ok {
 		panic(fmt.Errorf("Consumer %q has no config", consumer))

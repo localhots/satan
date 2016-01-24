@@ -7,11 +7,11 @@ import (
 	"strings"
 	"syscall"
 
-	"github.com/localhots/satan"
-	"github.com/localhots/satan/example/daemons"
-	"github.com/localhots/satan/example/kafka"
-	"github.com/localhots/satan/server"
-	"github.com/localhots/satan/stats"
+	"github.com/localhots/shezmu"
+	"github.com/localhots/shezmu/example/daemons"
+	"github.com/localhots/shezmu/example/kafka"
+	"github.com/localhots/shezmu/server"
+	"github.com/localhots/shezmu/stats"
 )
 
 func main() {
@@ -30,7 +30,7 @@ func main() {
 	server := server.New(6464, statsServer)
 	server.Start()
 
-	s := satan.Summon()
+	s := shezmu.Summon()
 	s.Subscriber = kafka.Subscriber{}
 	s.DaemonStats = stats.NewGroup(statsLogger, statsServer)
 

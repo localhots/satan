@@ -5,7 +5,7 @@ into the functions' first argument. Its main purpose is to hide common
 unmarshalling code from each function implementation thus reducing
 boilerplate and making package interaction code sexier.
 
-[Documentation](https://godoc.org/github.com/localhots/satan/caller)
+[Documentation](https://godoc.org/github.com/localhots/shezmu/caller)
 
 ### Example
 
@@ -14,7 +14,7 @@ package main
 
 import (
     "log"
-    "github.com/localhots/satan/caller"
+    "github.com/localhots/shezmu/caller"
     "github.com/path/to/package/messenger"
 )
 
@@ -37,7 +37,7 @@ Support code:
 package messenger
 
 import (
-    "github.com/localhots/satan/caller"
+    "github.com/localhots/shezmu/caller"
 )
 
 type item struct {

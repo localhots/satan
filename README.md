@@ -1,6 +1,6 @@
-# Satan
+# Shezmu
 
-Satan is a daemon execution platform for Go apps.
+Shezmu is a daemon execution platform for Go apps.
 
 * What is a daemon execution platform?
 * What does it provide?

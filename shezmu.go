@@ -1,4 +1,4 @@
-package satan
+package shezmu
 
 import (
 	"fmt"
@@ -8,11 +8,11 @@ import (
 	"sync"
 	"time"
 
-	"github.com/localhots/satan/stats"
+	"github.com/localhots/shezmu/stats"
 )
 
-// Satan is the master daemon.
-type Satan struct {
+// Shezmu is the master daemon.
+type Shezmu struct {
 	Subscriber  Subscriber
 	Publisher   Publisher
 	DaemonStats stats.Publisher
@@ -71,9 +71,9 @@ const (
 	DefaultNumWorkers = 100
 )
 
-// Summon creates a new instance of Satan.
-func Summon() *Satan {
-	return &Satan{
+// Summon creates a new instance of Shezmu.
+func Summon() *Shezmu {
+	return &Shezmu{
 		DaemonStats:     &stats.Void{},
 		Logger:          log.New(os.Stdout, "[daemons] ", log.LstdFlags),
 		NumWorkers:      DefaultNumWorkers,
@@ -85,7 +85,7 @@ func Summon() *Satan {
 }
 
 // AddDaemon adds a new daemon.
-func (s *Satan) AddDaemon(d Daemon) {
+func (s *Shezmu) AddDaemon(d Daemon) {
 	base := d.base()
 	base.self = d
 	base.subscriber = s.Subscriber
@@ -99,7 +99,7 @@ func (s *Satan) AddDaemon(d Daemon) {
 }
 
 // StartDaemons starts all registered daemons.
-func (s *Satan) StartDaemons() {
+func (s *Shezmu) StartDaemons() {
 	s.Logger.Printf("Starting %d workers", s.NumWorkers)
 	for i := 0; i < s.NumWorkers; i++ {
 		go s.runWorker()
@@ -107,7 +107,7 @@ func (s *Satan) StartDaemons() {
 }
 
 // StopDaemons stops all running daemons.
-func (s *Satan) StopDaemons() {
+func (s *Shezmu) StopDaemons() {
 	close(s.shutdownSystem)
 	for _, d := range s.daemons {
 		d.Shutdown()
@@ -121,7 +121,7 @@ func (s *Satan) StopDaemons() {
 	fmt.Println(s.runtimeStats.Fetch(stats.Latency))
 }
 
-func (s *Satan) runWorker() {
+func (s *Shezmu) runWorker() {
 	s.wgWorkers.Add(1)
 	defer s.wgWorkers.Done()
 	defer func() {
@@ -142,7 +142,7 @@ func (s *Satan) runWorker() {
 	}
 }
 
-func (s *Satan) processTask(t *task) {
+func (s *Shezmu) processTask(t *task) {
 	dur := time.Now().Sub(t.createdAt)
 	s.runtimeStats.Add(stats.Latency, dur)
 
@@ -153,7 +153,7 @@ func (s *Satan) processTask(t *task) {
 	}
 }
 
-func (s *Satan) processSystemTask(t *task) {
+func (s *Shezmu) processSystemTask(t *task) {
 	// Abort starting a system task if shutdown was already called. Otherwise
 	// incrementing a wait group counter will cause a panic. This should be an
 	// extremely rare scenario when a system task crashes and tries to restart
@@ -182,7 +182,7 @@ func (s *Satan) processSystemTask(t *task) {
 	t.actor() // <--- ACTION STARTS HERE
 }
 
-func (s *Satan) processGeneralTask(t *task) {
+func (s *Shezmu) processGeneralTask(t *task) {
 	defer func() {
 		if err := recover(); err != nil {
 			s.DaemonStats.Error(t.daemon.base().String())

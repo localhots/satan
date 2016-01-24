@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/localhots/satan/stats"
+	"github.com/localhots/shezmu/stats"
 )
 
 type Server struct {

@@ -1,4 +1,4 @@
-package satan
+package shezmu
 
 import (
 	"errors"
@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/juju/ratelimit"
-	"github.com/localhots/satan/caller"
+	"github.com/localhots/shezmu/caller"
 )
 
 // Daemon is the interface that contains a set of methods required to be
@@ -155,14 +155,14 @@ func (d *BaseDaemon) Continue() bool {
 	}
 }
 
-// Log logs values using satan.Logger.Println function.
+// Log logs values using shezmu.Logger.Println function.
 func (d *BaseDaemon) Log(v ...interface{}) {
 	if d.logger != nil {
 		d.logger.Println(v...)
 	}
 }
 
-// Logf logs values using satan.Logger.Printf function.
+// Logf logs values using shezmu.Logger.Printf function.
 func (d *BaseDaemon) Logf(format string, v ...interface{}) {
 	if d.logger != nil {
 		d.logger.Printf(format, v...)

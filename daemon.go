@@ -118,12 +118,12 @@ func (d *BaseDaemon) Subscribe(topic string, fun interface{}) {
 }
 
 // Publish sends a message to the publisher.
-func (d *BaseDaemon) Publish(msg []byte) {
+func (d *BaseDaemon) Publish(topic string, msg []byte, meta interface{}) {
 	if d.publisher == nil {
 		panic(errMissingPublisher)
 	}
 
-	d.publisher.Publish(msg)
+	d.publisher.Publish(topic, msg, meta)
 }
 
 // LimitRate limits the daemons' processing rate.

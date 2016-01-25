@@ -47,7 +47,7 @@ type Streamer interface {
 // Publisher is the interface that wraps message publishers. Error handling
 // should be provided by the implementation. Feel free to panic.
 type Publisher interface {
-	Publish(msg []byte)
+	Publish(topic string, msg []byte, meta interface{})
 	Close()
 }
 

@@ -34,7 +34,7 @@ type Actor func()
 
 // Subscriber is the interface that is used by daemons to subscribe to messages.
 type Subscriber interface {
-	Subscribe(consumer, topic string) Streamer
+	Subscribe(consumerName, topic string) Streamer
 }
 
 // Streamer is the interface that wraps message consumers. Error handling

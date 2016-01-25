@@ -71,14 +71,14 @@ func Shutdown() {
 }
 
 // Subscribe creates a shezmu.Streamer implementation for Kafka messaging queue.
-func (s Subscriber) Subscribe(consumer, topic string) shezmu.Streamer {
-	c, ok := consumers[consumer]
+func (s Subscriber) Subscribe(consumerName, topic string) shezmu.Streamer {
+	c, ok := consumers[consumerName]
 	if !ok {
-		panic(fmt.Errorf("Consumer %q has no config", consumer))
+		panic(fmt.Errorf("Consumer %q has no config", consumerName))
 	}
 	t, ok := c[topic]
 	if !ok {
-		panic(fmt.Errorf("Consumer %q has no config for topic %q", consumer, topic))
+		panic(fmt.Errorf("Consumer %q has no config for topic %q", consumerName, topic))
 	}
 
 	pc, err := kafkaConsumer.ConsumePartition(topic, t.Partition, t.Offset)

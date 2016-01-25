@@ -71,23 +71,24 @@ func (d *BaseDaemon) Process(a Actor) {
 	if d.limit != nil {
 		d.limit.Wait(1)
 	}
-	d.queue <- &task{
+
+	d.tryEnqueue(&task{
 		daemon:    d.self,
 		actor:     a,
 		createdAt: time.Now(),
-	}
+	})
 }
 
 // SystemProcess creates a system task that is restarted in case of failure
 // and then adds it to processing queue.
 func (d *BaseDaemon) SystemProcess(name string, a Actor) {
-	d.queue <- &task{
+	d.tryEnqueue(&task{
 		daemon:    d.self,
 		actor:     a,
 		createdAt: time.Now(),
 		system:    true,
 		name:      name,
-	}
+	})
 }
 
 // Subscribe subscriasdsdfsdgdfgdfsg sdgsdfg sdfgs dfgdfgdfg.
@@ -189,6 +190,16 @@ func (d *BaseDaemon) String() string {
 // underlying BaseDaemon structure.
 func (d *BaseDaemon) base() *BaseDaemon {
 	return d
+}
+
+func (d *BaseDaemon) tryEnqueue(t *task) {
+	defer func() {
+		if err := recover(); err != nil {
+			d.Logf("Failed to enqueue task %q due to process termination", t)
+		}
+	}()
+
+	d.queue <- t
 }
 
 func (d *BaseDaemon) handlePanic(err interface{}) {

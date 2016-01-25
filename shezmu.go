@@ -94,7 +94,6 @@ func (s *Shezmu) AddDaemon(d Daemon) {
 	base.logger = s.Logger
 	base.shutdown = s.shutdownSystem
 
-	go d.Startup()
 	s.daemons = append(s.daemons, d)
 }
 
@@ -109,6 +108,11 @@ func (s *Shezmu) StartDaemons() {
 	s.Logger.Printf("Starting %d workers", s.NumWorkers)
 	for i := 0; i < s.NumWorkers; i++ {
 		go s.runWorker()
+	}
+
+	s.Logger.Println("Setting up daemons")
+	for _, d := range s.daemons {
+		s.setupDaemon(d)
 	}
 }
 
@@ -125,6 +129,22 @@ func (s *Shezmu) StopDaemons() {
 	close(s.queue)
 
 	fmt.Println(s.runtimeStats.Fetch(stats.Latency))
+}
+
+func (s *Shezmu) setupDaemon(d Daemon) {
+	defer func() {
+		if err := recover(); err != nil {
+			s.Logger.Printf("Failed to setup daemon %s due to process termination", d)
+		}
+	}()
+
+	s.queue <- &task{
+		daemon:    d,
+		actor:     d.Startup,
+		createdAt: time.Now(),
+		system:    true,
+		name:      "startup",
+	}
 }
 
 func (s *Shezmu) runWorker() {
@@ -180,7 +200,7 @@ func (s *Shezmu) processSystemTask(t *task) {
 			t.createdAt = time.Now()
 			s.queue <- t // Restarting task
 		} else {
-			s.Logger.Printf("System task %s has stopped\n", t)
+			s.Logger.Printf("System task %s finished\n", t)
 		}
 	}()
 

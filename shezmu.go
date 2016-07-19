@@ -125,8 +125,14 @@ func (s *Shezmu) StopDaemons() {
 
 	s.wgSystem.Wait()
 	close(s.shutdownWorkers)
+
 	s.wgWorkers.Wait()
 	close(s.queue)
+
+	// Re-open closed channels to allow starting new deamons afterwards
+	s.shutdownSystem = make(chan struct{})
+	s.shutdownWorkers = make(chan struct{})
+	s.queue = make(chan *task)
 
 	fmt.Println(s.runtimeStats.Fetch(stats.Latency))
 }

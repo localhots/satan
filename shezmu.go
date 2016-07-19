@@ -75,7 +75,7 @@ const (
 func Summon() *Shezmu {
 	return &Shezmu{
 		DaemonStats:     &stats.Void{},
-		Logger:          log.New(os.Stdout, "[daemons] ", log.LstdFlags),
+		Logger:          log.New(os.Stdout, "", log.LstdFlags),
 		NumWorkers:      DefaultNumWorkers,
 		queue:           make(chan *task),
 		runtimeStats:    stats.NewBasicStats(),

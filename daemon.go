@@ -162,14 +162,14 @@ func (d *BaseDaemon) Continue() bool {
 // Log logs values using shezmu.Logger.Println function.
 func (d *BaseDaemon) Log(v ...interface{}) {
 	if d.logger != nil {
-		d.logger.Println(v...)
+		d.logger.Println(append([]interface{}{"[" + d.String() + "]"}, v...)...)
 	}
 }
 
 // Logf logs values using shezmu.Logger.Printf function.
 func (d *BaseDaemon) Logf(format string, v ...interface{}) {
 	if d.logger != nil {
-		d.logger.Printf(format, v...)
+		d.logger.Printf("["+d.String()+"] "+format, v...)
 	}
 }
 

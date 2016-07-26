@@ -209,10 +209,11 @@ func (s *Shezmu) processSystemTask(t *task) {
 
 func (s *Shezmu) processGeneralTask(t *task) {
 	defer func() {
-		if err := recover(); err != nil {
+		if val := recover(); val != nil {
+			err := interfaceToError(val)
 			s.DaemonStats.Error(t.daemon.String())
 			t.daemon.base().handlePanic(err)
-			s.Logger.Printf("Daemon %s recovered from a panic\nError: %v\n", t.daemon, err)
+			s.Logger.Printf("Daemon %s recovered from a panic\nError: %s\n", t.daemon, err.Error())
 			debug.PrintStack()
 		}
 	}()
@@ -226,4 +227,12 @@ func (s *Shezmu) processGeneralTask(t *task) {
 
 func (t *task) String() string {
 	return fmt.Sprintf("%s[%s]", t.daemon, t.name)
+}
+
+func interfaceToError(val interface{}) error {
+	if terr, ok := val.(error); ok {
+		return terr
+	}
+
+	return fmt.Errorf("%v", val)
 }

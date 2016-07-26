@@ -55,7 +55,7 @@ type BaseDaemon struct {
 }
 
 // PanicHandler is a function that handles panics. Duh!
-type PanicHandler func(interface{})
+type PanicHandler func(error)
 
 // Process creates a task and then adds it to processing queue.
 func (d *BaseDaemon) Process(a Actor) {
@@ -166,7 +166,7 @@ func (d *BaseDaemon) tryEnqueue(t *task) {
 	d.queue <- t
 }
 
-func (d *BaseDaemon) handlePanic(err interface{}) {
+func (d *BaseDaemon) handlePanic(err error) {
 	if d.panicHandler != nil {
 		d.panicHandler(err)
 	}

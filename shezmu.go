@@ -4,8 +4,10 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"os/signal"
 	"runtime/debug"
 	"sync"
+	"syscall"
 	"time"
 
 	"github.com/localhots/shezmu/stats"
@@ -112,6 +114,20 @@ func (s *Shezmu) StopDaemons() {
 	s.queue = make(chan *task)
 
 	fmt.Println(s.runtimeStats.Fetch(stats.Latency))
+}
+
+func (s *Shezmu) HandleSignals() {
+	ch := make(chan os.Signal)
+	signal.Notify(ch, syscall.SIGINT)
+	for {
+		switch sig := <-ch; sig {
+		case syscall.SIGINT:
+			s.StopDaemons()
+			return
+		default:
+			s.Logger.Printf("Signal ignored: %s", sig)
+		}
+	}
 }
 
 func (s *Shezmu) setupDaemon(d Daemon) {

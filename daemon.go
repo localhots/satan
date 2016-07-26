@@ -133,6 +133,10 @@ func (d *BaseDaemon) Logf(format string, v ...interface{}) {
 	}
 }
 
+// Startup is the empty implementation of the daemons' Startup function that
+// is inherited and used by default.
+func (d *BaseDaemon) Startup() {}
+
 // Shutdown is the empty implementation of the daemons' Shutdown function that
 // is inherited and used by default.
 func (d *BaseDaemon) Shutdown() {}

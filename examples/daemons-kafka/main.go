@@ -8,8 +8,8 @@ import (
 	"syscall"
 
 	"github.com/localhots/shezmu"
-	"github.com/localhots/shezmu/example/daemons"
-	"github.com/localhots/shezmu/example/kafka"
+	"github.com/localhots/shezmu/examples/daemons-kafka/daemons"
+	"github.com/localhots/shezmu/examples/daemons-kafka/kafka"
 	"github.com/localhots/shezmu/server"
 	"github.com/localhots/shezmu/stats"
 )
@@ -31,7 +31,6 @@ func main() {
 	server.Start()
 
 	s := shezmu.Summon()
-	s.Subscriber = kafka.Subscriber{}
 	s.DaemonStats = stats.NewGroup(statsLogger, statsServer)
 
 	s.AddDaemon(&daemons.NumberPrinter{})

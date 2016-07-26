@@ -3,12 +3,12 @@ package daemons
 import (
 	"time"
 
-	"github.com/localhots/shezmu"
+	"github.com/localhots/shezmu/consumer"
 )
 
 // PriceConsumer consumes price update messages and prints them to the console.
 type PriceConsumer struct {
-	shezmu.BaseDaemon
+	consumer.Consumer
 }
 
 // PriceUpdate describes a price update message.

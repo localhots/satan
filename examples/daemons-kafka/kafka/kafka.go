@@ -9,7 +9,7 @@ import (
 	"sync"
 
 	"github.com/Shopify/sarama"
-	"github.com/localhots/shezmu"
+	"github.com/localhots/shezmu/consumer"
 )
 
 // ConsumerState contains data that is required to create a Kafka consumer.
@@ -70,8 +70,8 @@ func Shutdown() {
 	}
 }
 
-// Subscribe creates a shezmu.Streamer implementation for Kafka messaging queue.
-func (s Subscriber) Subscribe(consumerName, topic string) shezmu.Streamer {
+// Subscribe creates a consumer.Streamer implementation for Kafka messaging queue.
+func (s Subscriber) Subscribe(consumerName, topic string) consumer.Streamer {
 	c, ok := consumers[consumerName]
 	if !ok {
 		panic(fmt.Errorf("Consumer %q has no config", consumerName))

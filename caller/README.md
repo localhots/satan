@@ -7,62 +7,21 @@ boilerplate and making package interaction code sexier.
 
 [Documentation](https://godoc.org/github.com/localhots/shezmu/caller)
 
-### Example
+Caller abstracts away the process of unmarshaling data before processing.
 
 ```go
-package main
-
-import (
-    "log"
-    "github.com/localhots/shezmu/caller"
-    "github.com/path/to/package/messenger"
-)
-
 type PriceUpdate struct {
     Product string  `json:"product"`
     Amount  float32 `json:"amount"`
 }
 
+func PriceUpdatePrinter(p PriceUpdate) {
+    log.Printf("Price for %q is now $%.2f", p.Product, p.Amount)
+}
+
+// Error handling is skipped for clarity
 func main() {
-    messenger.Subscribe("ProductPriceUpdates", func(p PriceUpdate) {
-        log.Printf("Price for %q is now $%.2f", p.Product, p.Amount)
-    })
-    messenger.Deliver()
-}
-```
-
-Support code:
-
-```go
-package messenger
-
-import (
-    "github.com/localhots/shezmu/caller"
-)
-
-type item struct {
-    topic   string
-    payload []byte
-}
-
-var queue <-chan item
-var subscriptions = make(map[string][]*caller.Caller)
-
-func Subscribe(topic string, callback interface{}) {
-    c, err := caller.New(processMessage)
-    if err != nil {
-        panic(err)
-    }
-    subcriptions[topic] = append(subcriptions[topic], c)
-}
-
-func Deliver() {
-    for itm := range queue {
-        for _, c := range subscriptions[itm.topic] {
-            // Payload example:
-            // {"product": "Paperclip", "amount": 0.01}
-            c.Call(itm.payload)
-        }
-    }
+    printer, _ := caller.New(PriceUpdatePrinter)
+    _ = printer.Call([]byte(`{"product": "Paperclip", "amount": 0.01}`))
 }
 ```

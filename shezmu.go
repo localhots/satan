@@ -13,8 +13,6 @@ import (
 
 // Shezmu is the master daemon.
 type Shezmu struct {
-	Subscriber  Subscriber
-	Publisher   Publisher
 	DaemonStats stats.Publisher
 	Logger      Logger
 	NumWorkers  int
@@ -31,25 +29,6 @@ type Shezmu struct {
 
 // Actor is a function that could be executed by daemon workers.
 type Actor func()
-
-// Subscriber is the interface that is used by daemons to subscribe to messages.
-type Subscriber interface {
-	Subscribe(consumerName, topic string) Streamer
-}
-
-// Streamer is the interface that wraps message consumers. Error handling
-// should be provided by the implementation. Feel free to panic.
-type Streamer interface {
-	Messages() <-chan []byte
-	Close()
-}
-
-// Publisher is the interface that wraps message publishers. Error handling
-// should be provided by the implementation. Feel free to panic.
-type Publisher interface {
-	Publish(topic string, msg []byte, meta interface{})
-	Close()
-}
 
 // Logger is the interface that implements minimal logging functions.
 type Logger interface {
@@ -88,8 +67,6 @@ func Summon() *Shezmu {
 func (s *Shezmu) AddDaemon(d Daemon) {
 	base := d.base()
 	base.self = d
-	base.subscriber = s.Subscriber
-	base.publisher = s.Publisher
 	base.queue = s.queue
 	base.logger = s.Logger
 	base.shutdown = s.shutdownSystem
@@ -232,9 +209,5 @@ func (s *Shezmu) processGeneralTask(t *task) {
 }
 
 func (t *task) String() string {
-	if t.name == "" {
-		return fmt.Sprintf("[unnamed %s process]", t.daemon)
-	}
-
 	return fmt.Sprintf("%s[%s]", t.daemon, t.name)
 }

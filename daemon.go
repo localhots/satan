@@ -1,13 +1,11 @@
 package shezmu
 
 import (
-	"errors"
 	"fmt"
 	"strings"
 	"time"
 
 	"github.com/juju/ratelimit"
-	"github.com/localhots/shezmu/caller"
 )
 
 // Daemon is the interface that contains a set of methods required to be
@@ -52,19 +50,12 @@ type BaseDaemon struct {
 	queue        chan<- *task
 	logger       Logger
 	panicHandler PanicHandler
-	subscriber   Subscriber
-	publisher    Publisher
 	shutdown     chan struct{}
 	limit        *ratelimit.Bucket
 }
 
 // PanicHandler is a function that handles panics. Duh!
 type PanicHandler func(interface{})
-
-var (
-	errMissingSubscriber = errors.New("subscriber is not set up")
-	errMissingPublisher  = errors.New("publisher is not set up")
-)
 
 // Process creates a task and then adds it to processing queue.
 func (d *BaseDaemon) Process(a Actor) {
@@ -76,12 +67,17 @@ func (d *BaseDaemon) Process(a Actor) {
 		daemon:    d.self,
 		actor:     a,
 		createdAt: time.Now(),
+		name:      "Actor",
 	})
 }
 
 // SystemProcess creates a system task that is restarted in case of failure
 // and then adds it to processing queue.
 func (d *BaseDaemon) SystemProcess(name string, a Actor) {
+	if name == "" {
+		name = "SystemProcess"
+	}
+
 	d.tryEnqueue(&task{
 		daemon:    d.self,
 		actor:     a,
@@ -89,42 +85,6 @@ func (d *BaseDaemon) SystemProcess(name string, a Actor) {
 		system:    true,
 		name:      name,
 	})
-}
-
-// Subscribe subscriasdsdfsdgdfgdfsg sdgsdfg sdfgs dfgdfgdfg.
-func (d *BaseDaemon) Subscribe(topic string, fun interface{}) {
-	name := fmt.Sprintf("subscription for topic %q", topic)
-	d.SystemProcess(name, func() {
-		if d.subscriber == nil {
-			panic(errMissingSubscriber)
-		}
-
-		stream := d.subscriber.Subscribe(d.String(), topic)
-		defer stream.Close()
-
-		cf, err := caller.New(fun)
-		if err != nil {
-			panic(err)
-		}
-
-		for {
-			select {
-			case msg := <-stream.Messages():
-				d.Process(func() { cf.Call(msg) })
-			case <-d.shutdown:
-				return
-			}
-		}
-	})
-}
-
-// Publish sends a message to the publisher.
-func (d *BaseDaemon) Publish(topic string, msg []byte, meta interface{}) {
-	if d.publisher == nil {
-		panic(errMissingPublisher)
-	}
-
-	d.publisher.Publish(topic, msg, meta)
 }
 
 // LimitRate limits the daemons' processing rate.

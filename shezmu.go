@@ -46,7 +46,7 @@ type task struct {
 	name      string
 }
 
-type tracer func() func()
+type tracer func(name string) func()
 
 const (
 	// DefaultNumWorkers is the default number of workers that would process
@@ -170,7 +170,7 @@ func (s *Shezmu) runWorker(track tracer) {
 }
 
 func (s *Shezmu) processTask(t *task, track tracer) {
-	stop := track()
+	stop := track(t.daemon.String())
 	defer stop()
 	dur := time.Now().Sub(t.createdAt)
 	s.runtimeStats.Add(stats.Latency, dur)

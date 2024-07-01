@@ -46,6 +46,8 @@ type task struct {
 	name      string
 }
 
+type tracer func() func()
+
 const (
 	// DefaultNumWorkers is the default number of workers that would process
 	// tasks.
@@ -83,10 +85,10 @@ func (s *Shezmu) ClearDaemons() {
 }
 
 // StartDaemons starts all registered daemons.
-func (s *Shezmu) StartDaemons() {
+func (s *Shezmu) StartDaemons(track tracer) {
 	s.Logger.Printf("Starting %d workers", s.NumWorkers)
 	for i := 0; i < s.NumWorkers; i++ {
-		go s.runWorker()
+		go s.runWorker(track)
 	}
 
 	s.Logger.Println("Setting up daemons")
@@ -146,28 +148,30 @@ func (s *Shezmu) setupDaemon(d Daemon) {
 	}
 }
 
-func (s *Shezmu) runWorker() {
+func (s *Shezmu) runWorker(track tracer) {
 	s.wgWorkers.Add(1)
 	defer s.wgWorkers.Done()
 	defer func() {
 		if err := recover(); err != nil {
 			s.Logger.Printf("Worker crashed. Error: %v\n", err)
 			debug.PrintStack()
-			go s.runWorker() // Restarting worker
+			go s.runWorker(track) // Restarting worker
 		}
 	}()
 
 	for {
 		select {
 		case t := <-s.queue:
-			s.processTask(t)
+			s.processTask(t, track)
 		case <-s.shutdownWorkers:
 			return
 		}
 	}
 }
 
-func (s *Shezmu) processTask(t *task) {
+func (s *Shezmu) processTask(t *task, track tracer) {
+	stop := track()
+	defer stop()
 	dur := time.Now().Sub(t.createdAt)
 	s.runtimeStats.Add(stats.Latency, dur)
 
